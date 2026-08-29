@@ -35,34 +35,39 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # DEBUG (solo para comprobar que llegan los secrets)
+      # Comprueba que las variables de Supabase llegan correctamente
+      # sin mostrar la clave completa.
       - name: Debug Supabase environment variables
         run: |
-          echo "---------------------------"
-          echo "SUPABASE URL:"
-          echo "$VITE_SUPABASE_URL"
+          node <<'NODE'
+          const url = process.env.VITE_SUPABASE_URL || ''
+          const key = process.env.VITE_SUPABASE_ANON_KEY || ''
 
-          echo ""
-          echo "URL LENGTH:"
-          echo ${#VITE_SUPABASE_URL}
+          console.log('---------------------------')
+          console.log('URL LENGTH:', url.length)
+          console.log('STARTS WITH HTTPS:', url.startsWith('https://'))
+          console.log('ENDS WITH SUPABASE.CO:', url.endsWith('.supabase.co'))
+          console.log('ANON KEY PRESENT:', key.length > 0 ? 'YES' : 'NO')
+          console.log('ANON KEY LENGTH:', key.length)
 
-          echo ""
-          echo "ANON KEY PRESENT:"
-          if [ -n "$VITE_SUPABASE_ANON_KEY" ]; then
-            echo "YES"
-          else
-            echo "NO"
-          fi
+          try {
+            const parsed = new URL(url)
 
-          echo ""
-          echo "ANON KEY LENGTH:"
-          echo ${#VITE_SUPABASE_ANON_KEY}
-          echo "---------------------------"
+            console.log('URL PARSE:', 'VALID')
+            console.log('PROTOCOL:', parsed.protocol)
+            console.log('HOSTNAME:', parsed.hostname)
+            console.log('PATHNAME:', parsed.pathname)
+          } catch {
+            console.log('URL PARSE:', 'INVALID')
+          }
+
+          console.log('---------------------------')
+          NODE
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
-      # Build de Vite
+      # Compila la aplicación con las variables de Supabase
       - name: Build project
         run: npm run build
         env:
@@ -73,7 +78,7 @@ jobs:
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v5
 
-      # Sube la carpeta dist
+      # Sube la carpeta dist generada por Vite
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -81,7 +86,6 @@ jobs:
 
   deploy:
     needs: build
-
     runs-on: ubuntu-latest
 
     environment:
@@ -89,6 +93,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
+      # Publica el artifact en GitHub Pages
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
