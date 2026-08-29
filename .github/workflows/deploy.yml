@@ -35,9 +35,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Comprueba que las variables de Supabase llegan correctamente
-      # sin mostrar la clave completa.
-      - name: Debug Supabase environment variables
+      # Comprueba que GitHub recibe correctamente
+      # las variables necesarias para Supabase.
+      - name: Validate Supabase environment variables
         run: |
           node <<'NODE'
           const url = process.env.VITE_SUPABASE_URL || ''
@@ -52,13 +52,12 @@ jobs:
 
           try {
             const parsed = new URL(url)
-
             console.log('URL PARSE:', 'VALID')
             console.log('PROTOCOL:', parsed.protocol)
             console.log('HOSTNAME:', parsed.hostname)
-            console.log('PATHNAME:', parsed.pathname)
           } catch {
             console.log('URL PARSE:', 'INVALID')
+            process.exit(1)
           }
 
           console.log('---------------------------')
@@ -67,18 +66,41 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
-      # Compila la aplicación con las variables de Supabase
+      # Compila Campaign Chronicles.
       - name: Build project
         run: npm run build
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
-      # Configura GitHub Pages
+      # Comprueba qué archivos generó Vite
+      # y que la URL de Supabase quedó incluida en el bundle.
+      - name: Verify generated build
+        run: |
+          echo "---------------------------"
+          echo "GENERATED ASSETS:"
+          ls -lah dist/assets
+
+          echo ""
+          echo "INDEX FILE:"
+          grep -o 'assets/index-[^"]*\.js' dist/index.html || true
+
+          echo ""
+          echo "SUPABASE URL IN BUNDLE:"
+          if grep -R -q "tzuuektabsznuwomsggz.supabase.co" dist; then
+            echo "YES"
+          else
+            echo "NO"
+            exit 1
+          fi
+
+          echo "---------------------------"
+
+      # Configura GitHub Pages.
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v5
 
-      # Sube la carpeta dist generada por Vite
+      # Sube exactamente el dist recién generado.
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -93,7 +115,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      # Publica el artifact en GitHub Pages
+      # Publica el nuevo build.
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
