@@ -168,13 +168,13 @@ function LandingPage({
             {t.app.eyebrow}
           </p>
 
-          {/* =================================================
+        {/* =================================================
               LOGO PRINCIPAL
               ================================================= */}
 
           <div className="hero-logo-wrapper">
             <img
-              src="/images/campaign-chronicles-logo.png"
+              src={`${import.meta.env.BASE_URL}images/campaign-chronicles-logo.png`}
               alt=""
               className="hero-logo"
               aria-hidden="true"
