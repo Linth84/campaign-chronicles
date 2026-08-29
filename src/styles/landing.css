@@ -1,0 +1,1228 @@
+/* =========================================================
+   CAMPAIGN CHRONICLE — LANDING
+   ========================================================= */
+
+
+/* ---------------------------------------------------------
+   1. CONTENEDOR GENERAL
+   --------------------------------------------------------- */
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at top,
+      rgba(199, 167, 106, 0.06),
+      transparent 34%
+    ),
+    linear-gradient(
+      180deg,
+      #0d0f14 0%,
+      #10131a 55%,
+      #0d0f14 100%
+    );
+}
+
+
+/* ---------------------------------------------------------
+   2. CABECERA
+   --------------------------------------------------------- */
+
+.header {
+  width: 100%;
+  min-height: 76px;
+  padding: 0 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  border-bottom: 1px solid var(--color-borde);
+  background: rgba(13, 15, 20, 0.72);
+
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+
+  position: relative;
+  z-index: 10;
+}
+
+
+/* ---------------------------------------------------------
+   3. MARCA
+   --------------------------------------------------------- */
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  font-family: var(--fuente-titulos);
+  font-size: 1.1rem;
+  color: var(--color-texto-principal);
+
+  letter-spacing: 0.03em;
+}
+
+.brand-icon {
+  width: 22px;
+  height: 22px;
+  color: var(--color-dorado);
+}
+
+
+/* ---------------------------------------------------------
+   4. SELECTOR DE IDIOMA
+   --------------------------------------------------------- */
+
+.language-selector {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  padding: 8px 11px;
+
+  border: 1px solid var(--color-borde);
+  border-radius: 999px;
+
+  color: var(--color-texto-suave);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.language-selector > svg {
+  width: 17px;
+  height: 17px;
+
+  color: var(--color-dorado);
+}
+
+.language-selector button {
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+
+  color: var(--color-texto-suave);
+
+  transition:
+    color var(--transicion-rapida),
+    opacity var(--transicion-rapida);
+}
+
+.language-selector button:hover {
+  color: var(--color-texto-principal);
+}
+
+.language-selector button.active {
+  color: var(--color-dorado-claro);
+}
+
+.language-divider {
+  width: 1px;
+  height: 14px;
+
+  background: var(--color-borde);
+}
+
+
+/* ---------------------------------------------------------
+   5. HERO
+   --------------------------------------------------------- */
+
+.hero {
+  flex: 1;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 72px 24px;
+
+  position: relative;
+}
+
+
+/* Decoración de fondo tipo cronología */
+
+.hero-content {
+  width: min(760px, 100%);
+  margin: 0 auto;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  text-align: center;
+
+  position: relative;
+  z-index: 2;
+}
+
+
+/* ---------------------------------------------------------
+   6. SÍMBOLO CENTRAL
+   --------------------------------------------------------- */
+
+.hero-symbol {
+  width: 76px;
+  height: 76px;
+
+  display: grid;
+  place-items: center;
+
+  margin-bottom: 28px;
+
+  border: 1px solid var(--color-borde-dorado);
+  border-radius: 50%;
+
+  color: var(--color-dorado-claro);
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(199, 167, 106, 0.12),
+      rgba(199, 167, 106, 0.03) 70%
+    );
+
+  box-shadow:
+    0 0 40px rgba(199, 167, 106, 0.05),
+    inset 0 0 20px rgba(199, 167, 106, 0.04);
+}
+
+.hero-symbol svg {
+  width: 34px;
+  height: 34px;
+}
+
+
+/* ---------------------------------------------------------
+   7. TEXTO SUPERIOR DEL HERO
+   --------------------------------------------------------- */
+
+.hero-eyebrow {
+  margin-bottom: 16px;
+
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+
+  color: var(--color-dorado);
+
+  text-transform: uppercase;
+}
+
+
+/* ---------------------------------------------------------
+   8. TÍTULO PRINCIPAL
+   --------------------------------------------------------- */
+
+.hero h1 {
+  margin: 0;
+
+  font-family: var(--fuente-titulos);
+  font-size: clamp(3.2rem, 7vw, 6.2rem);
+  font-weight: 400;
+
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+
+  color: var(--color-texto-principal);
+
+  text-shadow:
+    0 0 40px rgba(199, 167, 106, 0.04);
+}
+
+
+/* ---------------------------------------------------------
+   9. TAGLINE
+   --------------------------------------------------------- */
+
+.hero-tagline {
+  max-width: 560px;
+
+  margin: 24px 0 0;
+
+  font-size: 1.08rem;
+  line-height: 1.7;
+
+  color: var(--color-texto-secundario);
+}
+
+
+/* ---------------------------------------------------------
+   10. LÍNEA DECORATIVA
+   --------------------------------------------------------- */
+
+.chronicle-line {
+  width: min(420px, 80%);
+  height: 20px;
+
+  margin: 30px 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chronicle-line span {
+  flex: 1;
+  height: 1px;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-borde-dorado)
+  );
+}
+
+.chronicle-line span:last-child {
+  background: linear-gradient(
+    90deg,
+    var(--color-borde-dorado),
+    transparent
+  );
+}
+
+.chronicle-line i {
+  width: 7px;
+  height: 7px;
+
+  margin: 0 14px;
+
+  transform: rotate(45deg);
+
+  border: 1px solid var(--color-dorado);
+  background: var(--color-fondo);
+}
+
+
+/* ---------------------------------------------------------
+   11. BOTONES DEL HERO
+   --------------------------------------------------------- */
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+
+  flex-wrap: wrap;
+}
+
+.primary-button,
+.secondary-button {
+  min-height: 48px;
+
+  padding: 0 22px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  border-radius: var(--radio-pequeno);
+
+  font-size: 0.92rem;
+  font-weight: 600;
+
+  transition:
+    transform var(--transicion-rapida),
+    background var(--transicion-normal),
+    border-color var(--transicion-normal),
+    color var(--transicion-normal),
+    box-shadow var(--transicion-normal);
+}
+
+.primary-button svg,
+.secondary-button svg {
+  width: 18px;
+  height: 18px;
+}
+
+
+/* Botón principal */
+.primary-button {
+  color: #12100b;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--color-dorado-claro),
+      var(--color-dorado)
+    );
+
+  border: 1px solid transparent;
+
+  box-shadow:
+    0 10px 30px rgba(199, 167, 106, 0.14);
+}
+
+.primary-button:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 14px 36px rgba(199, 167, 106, 0.2);
+}
+
+
+/* Botón secundario */
+.secondary-button {
+  color: var(--color-texto-principal);
+
+  background: rgba(255, 255, 255, 0.025);
+
+  border: 1px solid var(--color-borde);
+}
+
+.secondary-button:hover {
+  transform: translateY(-2px);
+
+  border-color: var(--color-borde-dorado);
+
+  background: var(--color-dorado-suave);
+}
+
+
+/* ---------------------------------------------------------
+   12. PIE DE PÁGINA
+   --------------------------------------------------------- */
+
+.footer {
+  min-height: 60px;
+  padding: 0 24px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  border-top: 1px solid var(--color-borde);
+
+  font-size: 0.76rem;
+  color: var(--color-texto-suave);
+
+  letter-spacing: 0.04em;
+}
+
+.footer-dot {
+  width: 4px;
+  height: 4px;
+
+  border-radius: 50%;
+
+  background: var(--color-dorado);
+}
+
+
+/* ---------------------------------------------------------
+   13. RESPONSIVE — TABLET
+   --------------------------------------------------------- */
+
+@media (max-width: 768px) {
+  .header {
+    min-height: 68px;
+    padding: 0 20px;
+  }
+
+  .brand span {
+    display: none;
+  }
+
+  .hero {
+    padding: 56px 20px;
+  }
+
+  .hero-symbol {
+    width: 66px;
+    height: 66px;
+
+    margin-bottom: 24px;
+  }
+
+  .hero-symbol svg {
+    width: 30px;
+    height: 30px;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.8rem, 13vw, 4.4rem);
+  }
+
+  .hero-tagline {
+    font-size: 1rem;
+  }
+
+  .footer {
+    flex-wrap: wrap;
+    text-align: center;
+  }
+}
+
+
+/* ---------------------------------------------------------
+   14. RESPONSIVE — MÓVIL
+   --------------------------------------------------------- */
+
+@media (max-width: 480px) {
+  .header {
+    padding: 0 16px;
+  }
+
+  .language-selector {
+    gap: 7px;
+    padding: 7px 9px;
+  }
+
+  .hero {
+    padding: 44px 18px;
+  }
+
+  .hero-eyebrow {
+    font-size: 0.65rem;
+    letter-spacing: 0.16em;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.5rem, 14vw, 3.4rem);
+  }
+
+  .hero-tagline {
+    margin-top: 18px;
+  }
+
+  .chronicle-line {
+    margin: 24px 0;
+  }
+
+  .hero-actions {
+    width: 100%;
+  }
+
+  .primary-button,
+  .secondary-button {
+    width: 100%;
+  }
+}
+
+
+/* ---------------------------------------------------------
+   15. ACCESIBILIDAD — REDUCCIÓN DE MOVIMIENTO
+   --------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .primary-button,
+  .secondary-button,
+  .language-selector button {
+    transition: none;
+  }
+
+  .primary-button:hover,
+  .secondary-button:hover {
+    transform: none;
+  }
+}
+
+
+/* =========================================================
+   LANDING — LOGO PRINCIPAL
+   ========================================================= */
+
+.hero-logo-wrapper {
+  width: min(760px, 92vw);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: 2px auto 0;
+}
+
+.hero-logo {
+  display: block;
+
+  width: 100%;
+  height: auto;
+
+  object-fit: contain;
+
+  filter:
+    drop-shadow(
+      0 10px 28px
+      rgba(0, 0, 0, 0.32)
+    )
+    drop-shadow(
+      0 0 24px
+      rgba(199, 167, 106, 0.08)
+    );
+}
+
+
+/* =========================================================
+   TEXTO SOLO PARA ACCESIBILIDAD
+   ========================================================= */
+
+.sr-only {
+  position: absolute;
+
+  width: 1px;
+  height: 1px;
+
+  padding: 0;
+  margin: -1px;
+
+  overflow: hidden;
+
+  clip: rect(
+    0,
+    0,
+    0,
+    0
+  );
+
+  white-space: nowrap;
+
+  border: 0;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 768px) {
+  .hero-logo-wrapper {
+    width: min(
+      620px,
+      94vw
+    );
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-logo-wrapper {
+    width: 96vw;
+  }
+}
+
+
+/* =========================================================
+   LANDING — AMBIENTACIÓN ARCANA
+   ========================================================= */
+
+.landing-ambience {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  isolation: isolate;
+}
+
+/* Luz ambiental muy suave */
+
+.landing-ambience::before,
+.landing-ambience::after {
+  content: '';
+  position: absolute;
+  width: 720px;
+  height: 720px;
+  border-radius: 50%;
+  filter: blur(10px);
+  opacity: 0.55;
+}
+
+.landing-ambience::before {
+  left: -340px;
+  top: 8%;
+  background:
+    radial-gradient(
+      circle,
+      rgba(199, 167, 106, 0.075),
+      rgba(199, 167, 106, 0.018) 38%,
+      transparent 68%
+    );
+  animation:
+    ambientGlowLeft 18s ease-in-out infinite alternate;
+}
+
+.landing-ambience::after {
+  right: -360px;
+  bottom: -260px;
+  background:
+    radial-gradient(
+      circle,
+      rgba(199, 167, 106, 0.06),
+      rgba(199, 167, 106, 0.014) 40%,
+      transparent 70%
+    );
+  animation:
+    ambientGlowRight 22s ease-in-out infinite alternate;
+}
+
+/* ---------------------------------------------------------
+   CÍRCULOS ARCANOS
+   --------------------------------------------------------- */
+
+.arcane-orbit {
+  position: absolute;
+  width: 560px;
+  height: 560px;
+  border:
+    1px solid
+    rgba(199, 167, 106, 0.14);
+  border-radius: 50%;
+  opacity: 0.95;
+}
+
+.arcane-orbit::before,
+.arcane-orbit::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+}
+
+.arcane-orbit::before {
+  inset: 42px;
+  border:
+    1px dashed
+    rgba(199, 167, 106, 0.12);
+}
+
+.arcane-orbit::after {
+  inset: 112px;
+  border:
+    1px solid
+    rgba(199, 167, 106, 0.1);
+  box-shadow:
+    0 0 55px
+    rgba(199, 167, 106, 0.018);
+}
+
+.arcane-orbit > span {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  margin:
+    -4px 0 0 -4px;
+  border:
+    1px solid
+    rgba(199, 167, 106, 0.16);
+  transform:
+    rotate(var(--orbit-angle))
+    translateY(-279px)
+    rotate(45deg);
+}
+
+.arcane-orbit > span:nth-child(1) {
+  --orbit-angle: 0deg;
+}
+
+.arcane-orbit > span:nth-child(2) {
+  --orbit-angle: 90deg;
+}
+
+.arcane-orbit > span:nth-child(3) {
+  --orbit-angle: 180deg;
+}
+
+.arcane-orbit > span:nth-child(4) {
+  --orbit-angle: 270deg;
+}
+
+.arcane-orbit-left {
+  left: -290px;
+  top: 50%;
+  margin-top: -280px;
+  animation:
+    arcaneRotate 70s linear infinite;
+}
+
+.arcane-orbit-right {
+  right: -300px;
+  top: 10%;
+  width: 470px;
+  height: 470px;
+  opacity: 0.58;
+  animation:
+    arcaneRotateReverse 88s linear infinite;
+}
+
+.arcane-orbit-right > span {
+  transform:
+    rotate(var(--orbit-angle))
+    translateY(-234px)
+    rotate(45deg);
+}
+
+/* ---------------------------------------------------------
+   GLIFOS FLOTANTES
+   --------------------------------------------------------- */
+
+.arcane-sigil {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  font-family:
+    var(--fuente-titulos);
+  color:
+    rgba(216, 184, 119, 0.32);
+  text-shadow:
+    0 0 20px
+    rgba(199, 167, 106, 0.16);
+  will-change: transform;
+}
+
+.arcane-sigil i {
+  font-style: normal;
+}
+
+.arcane-sigil-one {
+  left: 10%;
+  top: 22%;
+  font-size: 28px;
+  animation:
+    runeFloatOne 15s ease-in-out infinite;
+}
+
+.arcane-sigil-two {
+  left: 17%;
+  bottom: 19%;
+  font-size: 35px;
+  opacity: 0.6;
+  animation:
+    runeFloatTwo 19s ease-in-out infinite;
+}
+
+.arcane-sigil-three {
+  right: 13%;
+  top: 25%;
+  font-size: 31px;
+  animation:
+    runeFloatThree 17s ease-in-out infinite;
+}
+
+.arcane-sigil-four {
+  right: 20%;
+  bottom: 18%;
+  font-size: 23px;
+  opacity: 0.7;
+  animation:
+    runeFloatOne 21s ease-in-out -8s infinite;
+}
+
+.arcane-sigil-five {
+  left: 5%;
+  top: 62%;
+  font-size: 21px;
+  opacity: 0.55;
+  animation:
+    runeFloatThree 23s ease-in-out -4s infinite;
+}
+
+.arcane-sigil-six {
+  right: 6%;
+  top: 58%;
+  font-size: 38px;
+  opacity: 0.48;
+  animation:
+    runeFloatTwo 20s ease-in-out -11s infinite;
+}
+
+/* ---------------------------------------------------------
+   POLVO / PARTÍCULAS DORADAS
+   --------------------------------------------------------- */
+
+.arcane-particles {
+  position: absolute;
+  inset: 0;
+}
+
+.arcane-particles span {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: rgba(220, 188, 121, 0.72);
+  box-shadow: 0 0 7px rgba(199, 167, 106, 0.42);
+  opacity: 0.5;
+  animation:
+    arcaneDust 18s ease-in-out infinite;
+}
+
+.arcane-particles span:nth-child(1)  { left: 5%;  top: 22%; animation-delay: -2s;  animation-duration: 16s; }
+.arcane-particles span:nth-child(2)  { left: 11%; top: 68%; animation-delay: -7s;  animation-duration: 21s; }
+.arcane-particles span:nth-child(3)  { left: 18%; top: 38%; animation-delay: -4s;  animation-duration: 19s; }
+.arcane-particles span:nth-child(4)  { left: 25%; top: 78%; animation-delay: -11s; animation-duration: 24s; }
+.arcane-particles span:nth-child(5)  { left: 31%; top: 17%; animation-delay: -8s;  animation-duration: 17s; }
+.arcane-particles span:nth-child(6)  { left: 37%; top: 61%; animation-delay: -3s;  animation-duration: 22s; }
+.arcane-particles span:nth-child(7)  { left: 43%; top: 31%; animation-delay: -13s; animation-duration: 25s; }
+.arcane-particles span:nth-child(8)  { left: 48%; top: 84%; animation-delay: -6s;  animation-duration: 20s; }
+.arcane-particles span:nth-child(9)  { left: 54%; top: 14%; animation-delay: -9s;  animation-duration: 23s; }
+.arcane-particles span:nth-child(10) { left: 59%; top: 56%; animation-delay: -1s;  animation-duration: 18s; }
+.arcane-particles span:nth-child(11) { left: 64%; top: 27%; animation-delay: -12s; animation-duration: 26s; }
+.arcane-particles span:nth-child(12) { left: 69%; top: 73%; animation-delay: -5s;  animation-duration: 21s; }
+.arcane-particles span:nth-child(13) { left: 74%; top: 41%; animation-delay: -10s; animation-duration: 24s; }
+.arcane-particles span:nth-child(14) { left: 79%; top: 19%; animation-delay: -3s;  animation-duration: 17s; }
+.arcane-particles span:nth-child(15) { left: 84%; top: 66%; animation-delay: -14s; animation-duration: 27s; }
+.arcane-particles span:nth-child(16) { left: 89%; top: 35%; animation-delay: -8s;  animation-duration: 20s; }
+.arcane-particles span:nth-child(17) { left: 93%; top: 79%; animation-delay: -4s;  animation-duration: 23s; }
+.arcane-particles span:nth-child(18) { left: 96%; top: 24%; animation-delay: -11s; animation-duration: 25s; }
+
+.arcane-particles span:nth-child(3n) {
+  width: 1px;
+  height: 1px;
+  opacity: 0.2;
+}
+
+.arcane-particles span:nth-child(4n) {
+  width: 3px;
+  height: 3px;
+  opacity: 0.4;
+}
+
+/* ---------------------------------------------------------
+   CAPAS DE LA LANDING
+   --------------------------------------------------------- */
+
+.header,
+.hero,
+.footer {
+  position: relative;
+}
+
+.header,
+.footer {
+  z-index: 10;
+}
+
+.hero {
+  z-index: 1;
+}
+
+.hero-content {
+  z-index: 3;
+}
+
+/* ---------------------------------------------------------
+   ANIMACIONES
+   --------------------------------------------------------- */
+
+@keyframes arcaneRotate {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes arcaneRotateReverse {
+  from {
+    transform: rotate(360deg);
+  }
+
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes runeFloatOne {
+  0%,
+  100% {
+    transform:
+      translate3d(
+        0,
+        0,
+        0
+      )
+      rotate(-8deg);
+  }
+
+  50% {
+    transform:
+      translate3d(
+        14px,
+        -24px,
+        0
+      )
+      rotate(8deg);
+  }
+}
+
+@keyframes runeFloatTwo {
+  0%,
+  100% {
+    transform:
+      translate3d(
+        0,
+        0,
+        0
+      )
+      rotate(6deg);
+  }
+
+  50% {
+    transform:
+      translate3d(
+        -18px,
+        -18px,
+        0
+      )
+      rotate(-9deg);
+  }
+}
+
+@keyframes runeFloatThree {
+  0%,
+  100% {
+    transform:
+      translate3d(
+        0,
+        0,
+        0
+      )
+      scale(0.96);
+  }
+
+  50% {
+    transform:
+      translate3d(
+        8px,
+        -28px,
+        0
+      )
+      scale(1.04);
+  }
+}
+
+@keyframes arcaneDust {
+  0%,
+  100% {
+    transform:
+      translate3d(
+        0,
+        8px,
+        0
+      );
+    opacity: 0.12;
+  }
+
+  45% {
+    opacity: 0.52;
+  }
+
+  50% {
+    transform:
+      translate3d(
+        8px,
+        -20px,
+        0
+      );
+  }
+}
+
+@keyframes ambientGlowLeft {
+  from {
+    transform:
+      translate3d(
+        -20px,
+        10px,
+        0
+      )
+      scale(0.95);
+  }
+
+  to {
+    transform:
+      translate3d(
+        55px,
+        -25px,
+        0
+      )
+      scale(1.08);
+  }
+}
+
+@keyframes ambientGlowRight {
+  from {
+    transform:
+      translate3d(
+        25px,
+        15px,
+        0
+      )
+      scale(0.96);
+  }
+
+  to {
+    transform:
+      translate3d(
+        -45px,
+        -35px,
+        0
+      )
+      scale(1.06);
+  }
+}
+
+/* ---------------------------------------------------------
+   RESPONSIVE DE LA AMBIENTACIÓN
+   --------------------------------------------------------- */
+
+@media (max-width: 768px) {
+  .arcane-orbit {
+    width: 430px;
+    height: 430px;
+  }
+
+  .arcane-orbit-left {
+    left: -300px;
+  }
+
+  .arcane-orbit-right {
+    right: -330px;
+  }
+
+  .arcane-sigil-one,
+  .arcane-sigil-five {
+    left: 4%;
+  }
+
+  .arcane-sigil-three,
+  .arcane-sigil-six {
+    right: 4%;
+  }
+}
+
+@media (max-width: 480px) {
+  .arcane-orbit {
+    opacity: 0.42;
+  }
+
+  .arcane-sigil-two,
+  .arcane-sigil-four,
+  .arcane-sigil-five {
+    display: none;
+  }
+
+  .arcane-particles span:nth-child(even) {
+    display: none;
+  }
+}
+
+/* ---------------------------------------------------------
+   ACCESIBILIDAD — REDUCCIÓN DE MOVIMIENTO
+   --------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-ambience *,
+  .landing-ambience::before,
+  .landing-ambience::after {
+    animation: none !important;
+  }
+}
+
+/* =========================================================
+   LANDING — HALO DORADO DEL LOGO
+   Luz ambiental detrás de la marca, sin efecto neón.
+   ========================================================= */
+
+.hero-logo-wrapper {
+  position: relative;
+  isolation: isolate;
+}
+
+.hero-logo-wrapper::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  top: 50%;
+  width: 82%;
+  height: 72%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+
+  background:
+  radial-gradient(
+    ellipse at center,
+    rgba(216, 184, 119, 0.25) 0%,
+    rgba(199, 167, 106, 0.14) 30%,
+    rgba(199, 167, 106, 0.028) 54%,
+    transparent 74%
+  );
+
+  filter: blur(26px);
+  opacity: 10;
+
+  animation:
+    landingLogoHalo 7s ease-in-out infinite alternate;
+}
+
+.hero-logo {
+  position: relative;
+  z-index: 1;
+
+  filter:
+    drop-shadow(
+      0 12px 30px
+      rgba(0, 0, 0, 0.38)
+    )
+    drop-shadow(
+      0 0 18px
+      rgba(199, 167, 106, 0.10)
+    )
+    drop-shadow(
+      0 0 42px
+      rgba(199, 167, 106, 0.055)
+    );
+}
+
+@keyframes landingLogoHalo {
+  from {
+    opacity: 0.9;
+    transform:
+      translate(-50%, -50%)
+      scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translate(-50%, -50%)
+      scale(1.035);
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-logo-wrapper::before {
+    width: 88%;
+    height: 68%;
+    filter: blur(22px);
+    opacity: 0.68;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-logo-wrapper::before {
+    width: 94%;
+    height: 64%;
+    filter: blur(18px);
+    opacity: 0.58;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-logo-wrapper::before {
+    animation: none;
+  }
+}
+

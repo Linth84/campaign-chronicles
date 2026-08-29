@@ -1,0 +1,1333 @@
+/* =========================================================
+   CREAR CAMPAÑA
+   ========================================================= */
+
+.create-campaign-page {
+  min-height: 100vh;
+  color: var(--color-texto);
+  background:
+    radial-gradient(
+      circle at 50% -10%,
+      rgba(199, 167, 106, 0.08),
+      transparent 36%
+    ),
+    var(--color-fondo);
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.create-campaign-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  width: 100%;
+  min-height: 72px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0 32px;
+  background: rgba(13, 15, 18, 0.92);
+  border-bottom: 1px solid var(--color-borde);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.create-campaign-back {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  font-family: var(--fuente-ui);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-texto-secundario);
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition:
+    color var(--transicion-rapida),
+    background var(--transicion-rapida);
+}
+
+.create-campaign-back svg {
+  width: 17px;
+  height: 17px;
+}
+
+.create-campaign-back:hover {
+  color: var(--color-dorado-claro);
+  background: rgba(199, 167, 106, 0.06);
+}
+
+.create-campaign-brand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font-family: var(--fuente-titulos);
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  color: var(--color-texto);
+}
+
+.create-campaign-brand svg {
+  width: 18px;
+  height: 18px;
+  color: var(--color-dorado);
+}
+
+/* =========================================================
+   CONTENIDO PRINCIPAL
+   ========================================================= */
+
+.create-campaign-main {
+  width: min(100% - 40px, 760px);
+  margin: 0 auto;
+  padding: 64px 0 100px;
+}
+
+/* =========================================================
+   TARJETA
+   ========================================================= */
+
+.create-campaign-card {
+  padding: 42px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.025),
+      rgba(255, 255, 255, 0.008)
+    ),
+    var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: 18px;
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.24);
+}
+
+/* =========================================================
+   ENCABEZADO DEL FORMULARIO
+   ========================================================= */
+
+.create-campaign-heading {
+  margin-bottom: 38px;
+  text-align: center;
+}
+
+.create-campaign-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 18px;
+  color: var(--color-dorado);
+  background: rgba(199, 167, 106, 0.07);
+  border: 1px solid rgba(199, 167, 106, 0.18);
+  border-radius: 12px;
+}
+
+.create-campaign-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.create-campaign-eyebrow {
+  margin: 0 0 9px;
+  font-family: var(--fuente-ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-dorado);
+}
+
+.create-campaign-heading h1 {
+  margin: 0;
+  font-family: var(--fuente-titulos);
+  font-size: clamp(30px, 5vw, 40px);
+  font-weight: 400;
+  line-height: 1.15;
+  color: var(--color-texto);
+}
+
+.create-campaign-intro {
+  max-width: 540px;
+  margin: 14px auto 0;
+  font-family: var(--fuente-ui);
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--color-texto-secundario);
+}
+
+/* =========================================================
+   FORMULARIO
+   ========================================================= */
+
+.create-campaign-form {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.create-campaign-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.create-campaign-field label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--fuente-ui);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-texto);
+}
+
+.create-campaign-field label span {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--color-texto-secundario);
+}
+
+/* =========================================================
+   INPUTS CON ICONO
+   ========================================================= */
+
+.create-campaign-input {
+  position: relative;
+  width: 100%;
+}
+
+.create-campaign-input > svg {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  z-index: 1;
+  width: 17px;
+  height: 17px;
+  color: var(--color-texto-secundario);
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.create-campaign-input input {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 14px 0 43px;
+  font-family: var(--fuente-ui);
+  font-size: 13px;
+  color: var(--color-texto);
+  background: rgba(8, 10, 13, 0.52);
+  border: 1px solid var(--color-borde);
+  border-radius: 9px;
+  outline: none;
+  transition:
+    border-color var(--transicion-rapida),
+    background var(--transicion-rapida),
+    box-shadow var(--transicion-rapida);
+}
+
+.create-campaign-input input::placeholder {
+  color: var(--color-texto-secundario);
+  opacity: 0.65;
+}
+
+.create-campaign-input input:hover {
+  border-color: rgba(199, 167, 106, 0.28);
+}
+
+.create-campaign-input input:focus {
+  background: rgba(8, 10, 13, 0.72);
+  border-color: var(--color-dorado);
+  box-shadow:
+    0 0 0 3px rgba(199, 167, 106, 0.08);
+}
+
+.create-campaign-input:focus-within > svg {
+  color: var(--color-dorado);
+}
+
+/* =========================================================
+   FECHA
+   ========================================================= */
+
+.create-campaign-input input[type='date'] {
+  color-scheme: dark;
+}
+
+.create-campaign-input input[type='date']::-webkit-calendar-picker-indicator {
+  opacity: 0.65;
+  cursor: pointer;
+}
+
+/* =========================================================
+   DESCRIPCIÓN
+   ========================================================= */
+
+.create-campaign-field textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 13px 14px;
+  resize: vertical;
+  font-family: var(--fuente-ui);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-texto);
+  background: rgba(8, 10, 13, 0.52);
+  border: 1px solid var(--color-borde);
+  border-radius: 9px;
+  outline: none;
+  transition:
+    border-color var(--transicion-rapida),
+    background var(--transicion-rapida),
+    box-shadow var(--transicion-rapida);
+}
+
+.create-campaign-field textarea::placeholder {
+  color: var(--color-texto-secundario);
+  opacity: 0.65;
+}
+
+.create-campaign-field textarea:hover {
+  border-color: rgba(199, 167, 106, 0.28);
+}
+
+.create-campaign-field textarea:focus {
+  background: rgba(8, 10, 13, 0.72);
+  border-color: var(--color-dorado);
+  box-shadow:
+    0 0 0 3px rgba(199, 167, 106, 0.08);
+}
+
+/* =========================================================
+   MENSAJE DE ERROR
+   ========================================================= */
+
+.create-campaign-feedback {
+  padding: 11px 13px;
+  font-family: var(--fuente-ui);
+  font-size: 12px;
+  line-height: 1.5;
+  color: #e8a7a7;
+  background: rgba(180, 70, 70, 0.08);
+  border: 1px solid rgba(210, 100, 100, 0.2);
+  border-radius: 8px;
+}
+
+/* =========================================================
+   BOTÓN CREAR
+   ========================================================= */
+
+.create-campaign-submit {
+  width: 100%;
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  margin-top: 8px;
+  padding: 0 20px;
+  font-family: var(--fuente-ui);
+  font-size: 13px;
+  font-weight: 700;
+  color: #101114;
+  background: var(--color-dorado);
+  border: 1px solid var(--color-dorado);
+  border-radius: 9px;
+  cursor: pointer;
+  transition:
+    background var(--transicion-rapida),
+    border-color var(--transicion-rapida),
+    transform var(--transicion-rapida),
+    box-shadow var(--transicion-rapida);
+}
+
+.create-campaign-submit svg {
+  width: 17px;
+  height: 17px;
+}
+
+.create-campaign-submit:hover:not(:disabled) {
+  background: var(--color-dorado-claro);
+  border-color: var(--color-dorado-claro);
+  transform: translateY(-1px);
+  box-shadow:
+    0 8px 24px rgba(199, 167, 106, 0.12);
+}
+
+.create-campaign-submit:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.create-campaign-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 700px) {
+  .create-campaign-header {
+    min-height: 64px;
+    grid-template-columns: 1fr auto 1fr;
+    padding: 0 16px;
+  }
+
+  .create-campaign-brand span {
+    display: none;
+  }
+
+  .create-campaign-brand svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .create-campaign-main {
+    width: min(100% - 28px, 760px);
+    padding: 36px 0 70px;
+  }
+
+  .create-campaign-card {
+    padding: 28px 22px;
+    border-radius: 14px;
+  }
+
+  .create-campaign-heading {
+    margin-bottom: 30px;
+  }
+
+  .create-campaign-form {
+    gap: 19px;
+  }
+}
+
+@media (max-width: 420px) {
+  .create-campaign-header {
+    padding: 0 10px;
+  }
+
+  .create-campaign-back {
+    gap: 5px;
+    padding: 7px 5px;
+    font-size: 12px;
+  }
+
+  .create-campaign-main {
+    width: calc(100% - 20px);
+    padding-top: 24px;
+  }
+
+  .create-campaign-card {
+    padding: 24px 16px;
+  }
+
+  .create-campaign-heading h1 {
+    font-size: 29px;
+  }
+}
+
+
+/* =========================================================
+   CREATE — ACABADO AMBIENTAL
+   ========================================================= */
+
+.create-campaign-page {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.create-campaign-ambience {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.create-campaign-header,
+.create-campaign-main {
+  position: relative;
+  z-index: 2;
+}
+
+.create-campaign-ambience::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 120px;
+  transform: translateX(-50%);
+  width: 620px;
+  height: 620px;
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle,
+      rgba(199, 167, 106, 0.085),
+      rgba(199, 167, 106, 0.025) 36%,
+      transparent 70%
+    );
+  opacity: 0.62;
+  filter: blur(4px);
+  animation:
+    create-campaignAmbientGlow 24s ease-in-out infinite alternate;
+}
+
+/* ---------------------------------------------------------
+   ORNAMENTOS GEOMÉTRICOS
+   --------------------------------------------------------- */
+
+.create-campaign-ornament {
+  position: absolute;
+  width: 390px;
+  height: 390px;
+  border:
+    1px solid
+    rgba(199, 167, 106, 0.12);
+  border-radius: 50%;
+}
+
+.create-campaign-ornament::before,
+.create-campaign-ornament::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+}
+
+.create-campaign-ornament::before {
+  inset: 34px;
+  border:
+    1px dashed
+    rgba(199, 167, 106, 0.10);
+}
+
+.create-campaign-ornament::after {
+  inset: 92px;
+  border:
+    1px solid
+    rgba(199, 167, 106, 0.075);
+  box-shadow:
+    0 0 42px
+    rgba(199, 167, 106, 0.03);
+}
+
+.create-campaign-ornament > span {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  margin: -3.5px 0 0 -3.5px;
+  border:
+    1px solid
+    rgba(216, 184, 119, 0.19);
+  transform: rotate(45deg);
+}
+
+.create-campaign-ornament > span:nth-child(1) {
+  margin-top: -198px;
+}
+
+.create-campaign-ornament > span:nth-child(2) {
+  margin-left: 191px;
+}
+
+.create-campaign-ornament > span:nth-child(3) {
+  margin-top: 191px;
+}
+
+.create-campaign-ornament > span:nth-child(4) {
+  margin-left: -198px;
+}
+
+.create-campaign-ornament-one {
+  left: -220px;
+  top: 125px;
+  opacity: 0.52;
+  animation:
+    create-campaignRingSpin 95s linear infinite;
+}
+
+.create-campaign-ornament-two {
+  right: -155px;
+  bottom: 80px;
+  width: 310px;
+  height: 310px;
+  opacity: 0.34;
+  animation:
+    create-campaignRingSpinReverse 118s linear infinite;
+}
+
+/* ---------------------------------------------------------
+   GLIFOS
+   --------------------------------------------------------- */
+
+.create-campaign-glyph {
+  position: absolute;
+  font-family: var(--fuente-titulos);
+  font-style: normal;
+  color:
+    rgba(224, 191, 123, 0.25);
+  text-shadow:
+    0 0 18px
+    rgba(199, 167, 106, 0.12);
+}
+
+.create-campaign-glyph-one {
+  left: 7%;
+  top: 31%;
+  font-size: 24px;
+  animation:
+    create-campaignGlyphA 22s ease-in-out infinite;
+}
+
+.create-campaign-glyph-two {
+  right: 8%;
+  top: 27%;
+  font-size: 28px;
+  animation:
+    create-campaignGlyphB 27s ease-in-out -9s infinite;
+}
+
+.create-campaign-glyph-three {
+  right: 15%;
+  bottom: 14%;
+  font-size: 21px;
+  opacity: 0.65;
+  animation:
+    create-campaignGlyphA 31s ease-in-out -14s infinite;
+}
+
+/* ---------------------------------------------------------
+   POLVO DORADO
+   --------------------------------------------------------- */
+
+.create-campaign-dust {
+  position: absolute;
+  inset: 0;
+}
+
+.create-campaign-dust span {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background:
+    rgba(226, 193, 125, 0.7);
+  box-shadow:
+    0 0 8px
+    rgba(199, 167, 106, 0.34);
+  opacity: 0.32;
+  animation:
+    create-campaignDust 25s ease-in-out infinite;
+}
+
+.create-campaign-dust span:nth-child(1)  { left: 5%;  top: 18%; animation-delay: -4s; }
+.create-campaign-dust span:nth-child(2)  { left: 16%; top: 68%; animation-delay: -12s; animation-duration: 29s; }
+.create-campaign-dust span:nth-child(3)  { left: 28%; top: 27%; animation-delay: -7s; animation-duration: 31s; }
+.create-campaign-dust span:nth-child(4)  { left: 39%; top: 82%; animation-delay: -17s; animation-duration: 27s; }
+.create-campaign-dust span:nth-child(5)  { left: 52%; top: 19%; animation-delay: -10s; animation-duration: 33s; }
+.create-campaign-dust span:nth-child(6)  { left: 63%; top: 72%; animation-delay: -5s; animation-duration: 28s; }
+.create-campaign-dust span:nth-child(7)  { left: 74%; top: 34%; animation-delay: -15s; animation-duration: 30s; }
+.create-campaign-dust span:nth-child(8)  { left: 83%; top: 86%; animation-delay: -8s; animation-duration: 34s; }
+.create-campaign-dust span:nth-child(9)  { left: 91%; top: 22%; animation-delay: -18s; animation-duration: 26s; }
+.create-campaign-dust span:nth-child(10) { left: 96%; top: 61%; animation-delay: -11s; animation-duration: 32s; }
+
+/* ---------------------------------------------------------
+   PROFUNDIDAD DE SUPERFICIES
+   --------------------------------------------------------- */
+
+.create-campaign-page :is(
+  .create-campaign-card,
+  .import-source-card,
+  .import-preview,
+  .profile-card
+) {
+  box-shadow:
+    0 22px 58px rgba(0, 0, 0, 0.22),
+    0 0 0 1px rgba(199, 167, 106, 0.018),
+    0 0 44px rgba(199, 167, 106, 0.018);
+}
+
+/* ---------------------------------------------------------
+   ANIMACIONES
+   --------------------------------------------------------- */
+
+@keyframes create-campaignRingSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes create-campaignRingSpinReverse {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+@keyframes create-campaignGlyphA {
+  0%,
+  100% {
+    transform:
+      translate3d(0, 0, 0)
+      rotate(-6deg);
+  }
+
+  50% {
+    transform:
+      translate3d(11px, -20px, 0)
+      rotate(7deg);
+  }
+}
+
+@keyframes create-campaignGlyphB {
+  0%,
+  100% {
+    transform:
+      translate3d(0, 0, 0)
+      rotate(6deg);
+  }
+
+  50% {
+    transform:
+      translate3d(-13px, -18px, 0)
+      rotate(-7deg);
+  }
+}
+
+@keyframes create-campaignDust {
+  0%,
+  100% {
+    transform: translate3d(0, 7px, 0);
+    opacity: 0.14;
+  }
+
+  50% {
+    transform: translate3d(6px, -19px, 0);
+    opacity: 0.48;
+  }
+}
+
+@keyframes create-campaignAmbientGlow {
+  from {
+    transform: translate3d(-18px, 8px, 0) scale(0.97);
+  }
+
+  to {
+    transform: translate3d(28px, -20px, 0) scale(1.05);
+  }
+}
+
+/* ---------------------------------------------------------
+   RESPONSIVE
+   --------------------------------------------------------- */
+
+@media (max-width: 700px) {
+  .create-campaign-ornament {
+    opacity: 0.25;
+  }
+
+  .create-campaign-glyph-three {
+    display: none;
+  }
+
+  .create-campaign-dust span:nth-child(even) {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .create-campaign-ambience *,
+  .create-campaign-ambience::before {
+    animation: none !important;
+  }
+}
+
+
+/* =========================================================
+   CREATE — SEGUNDA PASADA PREMIUM
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   ESCENA / PROFUNDIDAD GENERAL
+   --------------------------------------------------------- */
+
+.create-campaign-main {
+  perspective: 1200px;
+}
+
+.create-campaign-card {
+  position: relative;
+  overflow: visible;
+  isolation: isolate;
+
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(199, 167, 106, 0.065),
+      transparent 29%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.026),
+      rgba(255, 255, 255, 0.006)
+    ),
+    var(--color-superficie);
+
+  border-color:
+    rgba(199, 167, 106, 0.18);
+
+  box-shadow:
+    0 34px 90px rgba(0, 0, 0, 0.34),
+    0 0 0 1px rgba(199, 167, 106, 0.025),
+    0 0 72px rgba(199, 167, 106, 0.035),
+    inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.create-campaign-card::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  z-index: -1;
+  border:
+    1px solid
+    rgba(199, 167, 106, 0.055);
+  border-radius: 13px;
+  pointer-events: none;
+}
+
+.create-campaign-card::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -1px;
+  width: 42%;
+  height: 1px;
+  transform: translateX(-50%);
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(226, 193, 125, 0.58),
+      transparent
+    );
+  box-shadow:
+    0 0 15px
+    rgba(199, 167, 106, 0.22);
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------------
+   ORNAMENTOS EN LAS ESQUINAS DE LA CARD
+   --------------------------------------------------------- */
+
+.create-campaign-card-ornaments {
+  position: absolute;
+  inset: -1px;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.create-card-corner {
+  position: absolute;
+  width: 52px;
+  height: 52px;
+  opacity: 0.72;
+}
+
+.create-card-corner::before,
+.create-card-corner::after {
+  content: '';
+  position: absolute;
+  background:
+    rgba(199, 167, 106, 0.34);
+  box-shadow:
+    0 0 8px
+    rgba(199, 167, 106, 0.08);
+}
+
+.create-card-corner::before {
+  width: 34px;
+  height: 1px;
+}
+
+.create-card-corner::after {
+  width: 1px;
+  height: 34px;
+}
+
+.create-card-corner-tl {
+  left: 15px;
+  top: 15px;
+}
+
+.create-card-corner-tl::before,
+.create-card-corner-tl::after {
+  left: 0;
+  top: 0;
+}
+
+.create-card-corner-tr {
+  right: 15px;
+  top: 15px;
+  transform: rotate(90deg);
+}
+
+.create-card-corner-tr::before,
+.create-card-corner-tr::after {
+  left: 0;
+  top: 0;
+}
+
+.create-card-corner-bl {
+  left: 15px;
+  bottom: 15px;
+  transform: rotate(-90deg);
+}
+
+.create-card-corner-bl::before,
+.create-card-corner-bl::after {
+  left: 0;
+  top: 0;
+}
+
+.create-card-corner-br {
+  right: 15px;
+  bottom: 15px;
+  transform: rotate(180deg);
+}
+
+.create-card-corner-br::before,
+.create-card-corner-br::after {
+  left: 0;
+  top: 0;
+}
+
+/* Líneas laterales con nodos */
+
+.create-card-line {
+  position: absolute;
+  top: 116px;
+  width: 1px;
+  height: 88px;
+  background:
+    linear-gradient(
+      180deg,
+      transparent,
+      rgba(199, 167, 106, 0.20),
+      transparent
+    );
+}
+
+.create-card-line-left {
+  left: 16px;
+}
+
+.create-card-line-right {
+  right: 16px;
+}
+
+.create-card-node {
+  position: absolute;
+  top: 159px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background:
+    rgba(226, 193, 125, 0.66);
+  box-shadow:
+    0 0 9px
+    rgba(199, 167, 106, 0.38);
+  animation:
+    createPremiumNodePulse 4.8s ease-in-out infinite;
+}
+
+.create-card-node-left {
+  left: 14px;
+}
+
+.create-card-node-right {
+  right: 14px;
+  animation-delay: -2.4s;
+}
+
+/* El contenido siempre queda por encima de los adornos */
+
+.create-campaign-heading,
+.create-campaign-form {
+  position: relative;
+  z-index: 2;
+}
+
+/* ---------------------------------------------------------
+   SELLO ARCANO DEL ENCABEZADO
+   --------------------------------------------------------- */
+
+.create-campaign-seal {
+  position: relative;
+  width: 126px;
+  height: 126px;
+  display: grid;
+  place-items: center;
+  margin: -10px auto 10px;
+}
+
+.create-campaign-seal::before {
+  content: '';
+  position: absolute;
+  inset: 20px;
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle,
+      rgba(199, 167, 106, 0.16),
+      rgba(199, 167, 106, 0.045) 48%,
+      transparent 72%
+    );
+  filter: blur(3px);
+  animation:
+    createPremiumSealGlow 5.5s ease-in-out infinite;
+}
+
+.create-campaign-seal-ring {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.create-campaign-seal-ring-outer {
+  inset: 7px;
+  border:
+    1px solid
+    rgba(199, 167, 106, 0.28);
+  box-shadow:
+    0 0 22px
+    rgba(199, 167, 106, 0.055);
+  animation:
+    createPremiumSealSpin 42s linear infinite;
+}
+
+.create-campaign-seal-ring-outer::before,
+.create-campaign-seal-ring-outer::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+}
+
+.create-campaign-seal-ring-outer::before {
+  inset: 8px;
+  border:
+    1px dashed
+    rgba(199, 167, 106, 0.20);
+}
+
+.create-campaign-seal-ring-outer::after {
+  inset: 17px;
+  border:
+    1px solid
+    rgba(199, 167, 106, 0.10);
+}
+
+.create-campaign-seal-ring-inner {
+  inset: 31px;
+  border:
+    1px solid
+    rgba(226, 193, 125, 0.20);
+  animation:
+    createPremiumSealSpinReverse 30s linear infinite;
+}
+
+.create-campaign-seal-ring-inner::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border:
+    1px dashed
+    rgba(199, 167, 106, 0.13);
+  border-radius: 50%;
+}
+
+.create-campaign-seal-mark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border:
+    1px solid
+    rgba(226, 193, 125, 0.44);
+  background:
+    rgba(13, 15, 18, 0.8);
+  transform: rotate(45deg);
+  box-shadow:
+    0 0 8px
+    rgba(199, 167, 106, 0.16);
+}
+
+.create-campaign-seal-mark-top {
+  margin-top: -61px;
+}
+
+.create-campaign-seal-mark-right {
+  margin-left: 53px;
+}
+
+.create-campaign-seal-mark-bottom {
+  margin-top: 53px;
+}
+
+.create-campaign-seal-mark-left {
+  margin-left: -61px;
+}
+
+/* Reutilizamos el icono existente como centro del sello */
+
+.create-campaign-seal .create-campaign-icon {
+  position: relative;
+  z-index: 3;
+  width: 52px;
+  height: 52px;
+  margin: 0;
+  border-radius: 50%;
+  color:
+    var(--color-dorado-claro);
+  background:
+    radial-gradient(
+      circle at 50% 35%,
+      rgba(199, 167, 106, 0.18),
+      rgba(199, 167, 106, 0.065)
+    ),
+    rgba(11, 13, 17, 0.88);
+  border:
+    1px solid
+    rgba(226, 193, 125, 0.36);
+  box-shadow:
+    0 0 0 6px rgba(199, 167, 106, 0.035),
+    0 0 24px rgba(199, 167, 106, 0.13),
+    inset 0 0 18px rgba(199, 167, 106, 0.055);
+}
+
+.create-campaign-seal .create-campaign-icon svg {
+  width: 23px;
+  height: 23px;
+  filter:
+    drop-shadow(
+      0 0 6px
+      rgba(199, 167, 106, 0.24)
+    );
+}
+
+/* ---------------------------------------------------------
+   TÍTULO Y DIVISOR
+   --------------------------------------------------------- */
+
+.create-campaign-heading {
+  margin-bottom: 34px;
+}
+
+.create-campaign-heading h1 {
+  text-shadow:
+    0 0 28px
+    rgba(199, 167, 106, 0.055);
+}
+
+.create-campaign-intro {
+  position: relative;
+  padding-bottom: 24px;
+}
+
+.create-campaign-intro::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: min(290px, 62%);
+  height: 1px;
+  transform: translateX(-50%);
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(199, 167, 106, 0.25),
+      transparent
+    );
+}
+
+/* ---------------------------------------------------------
+   INPUTS — LUZ MÁS REFINADA
+   --------------------------------------------------------- */
+
+.create-campaign-input input,
+.create-campaign-field textarea {
+  box-shadow:
+    inset 0 1px 0
+    rgba(255, 255, 255, 0.012);
+}
+
+.create-campaign-input input:focus,
+.create-campaign-field textarea:focus {
+  box-shadow:
+    0 0 0 3px rgba(199, 167, 106, 0.075),
+    0 0 24px rgba(199, 167, 106, 0.035),
+    inset 0 1px 0 rgba(255, 255, 255, 0.018);
+}
+
+/* ---------------------------------------------------------
+   BOTÓN PRINCIPAL
+   --------------------------------------------------------- */
+
+.create-campaign-submit {
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    0 9px 30px
+    rgba(199, 167, 106, 0.075);
+}
+
+.create-campaign-submit::before {
+  content: '';
+  position: absolute;
+  top: -70%;
+  left: -20%;
+  width: 22%;
+  height: 240%;
+  transform:
+    rotate(18deg)
+    translateX(-260%);
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.28),
+      transparent
+    );
+  transition:
+    transform 700ms ease;
+  pointer-events: none;
+}
+
+.create-campaign-submit:hover:not(:disabled)::before {
+  transform:
+    rotate(18deg)
+    translateX(650%);
+}
+
+/* ---------------------------------------------------------
+   ANIMACIONES PREMIUM
+   --------------------------------------------------------- */
+
+@keyframes createPremiumSealSpin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes createPremiumSealSpinReverse {
+  from {
+    transform: rotate(360deg);
+  }
+
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes createPremiumSealGlow {
+  0%,
+  100% {
+    opacity: 0.58;
+    transform: scale(0.94);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+
+@keyframes createPremiumNodePulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.8);
+  }
+
+  50% {
+    opacity: 0.9;
+    transform: scale(1.2);
+  }
+}
+
+/* ---------------------------------------------------------
+   RESPONSIVE PREMIUM
+   --------------------------------------------------------- */
+
+@media (max-width: 700px) {
+  .create-campaign-seal {
+    width: 108px;
+    height: 108px;
+    margin-top: -7px;
+  }
+
+  .create-campaign-seal-ring-outer {
+    inset: 5px;
+  }
+
+  .create-campaign-seal-ring-inner {
+    inset: 27px;
+  }
+
+  .create-campaign-seal-mark-top {
+    margin-top: -53px;
+  }
+
+  .create-campaign-seal-mark-right {
+    margin-left: 45px;
+  }
+
+  .create-campaign-seal-mark-bottom {
+    margin-top: 45px;
+  }
+
+  .create-campaign-seal-mark-left {
+    margin-left: -53px;
+  }
+
+  .create-card-line,
+  .create-card-node {
+    display: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .create-card-corner {
+    opacity: 0.44;
+  }
+
+  .create-campaign-card::before {
+    inset: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .create-campaign-seal *,
+  .create-card-node,
+  .create-campaign-submit::before {
+    animation: none !important;
+    transition: none !important;
+  }
+}
