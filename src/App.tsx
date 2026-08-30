@@ -17,6 +17,7 @@ import ImportCampaignPage from './pages/ImportCampaignPage'
 import CampaignPage from './pages/CampaignPage'
 import ProfilePage from './pages/ProfilePage'
 import './components/MagicCursor'
+import EmailVerifiedPage from './pages/EmailVerifiedPage'
 
 import {
   supabase,
@@ -63,6 +64,23 @@ function App() {
     setLanguage,
   ] =
     useState<Language>(() => {
+      const params =
+        new URLSearchParams(
+          window.location.search,
+        )
+
+      const verificationLanguage =
+        params.get('lang')
+
+      if (
+        verificationLanguage ===
+          'en' ||
+        verificationLanguage ===
+          'es'
+      ) {
+        return verificationLanguage
+      }
+
       const savedLanguage =
         localStorage.getItem(
           'campaign-chronicles-language',
@@ -104,6 +122,22 @@ function App() {
     setPasswordRecovery,
   ] =
     useState(false)
+
+  const [
+    emailVerificationSuccess,
+    setEmailVerificationSuccess,
+  ] =
+    useState(() => {
+      const params =
+        new URLSearchParams(
+          window.location.search,
+        )
+
+      return (
+        params.get('verified') ===
+        '1'
+      )
+    })
 
   /* =======================================================
      NAVEGACIÓN PÚBLICA
@@ -397,6 +431,49 @@ function App() {
     }
 
   /* =======================================================
+     CONTINUAR DESPUÉS DE VERIFICAR EL CORREO
+     ======================================================= */
+
+  const handleVerificationContinue =
+    async () => {
+      const {
+        error,
+      } =
+        await supabase.auth.signOut()
+
+      if (error) {
+        console.error(
+          'Error al cerrar la sesión de verificación:',
+          error,
+        )
+
+        return
+      }
+
+      window.history.replaceState(
+        {},
+        '',
+        window.location.pathname,
+      )
+
+      setEmailVerificationSuccess(
+        false,
+      )
+
+      setSession(
+        null,
+      )
+
+      setAuthMode(
+        'login',
+      )
+
+      setPublicView(
+        'auth',
+      )
+    }
+
+  /* =======================================================
      CERRAR SESIÓN
      ======================================================= */
 
@@ -450,6 +527,25 @@ function App() {
           Campaign Chronicles
         </span>
       </div>
+    )
+  }
+
+  /* =======================================================
+     CORREO VERIFICADO
+     ======================================================= */
+
+  if (
+    emailVerificationSuccess
+  ) {
+    return (
+      <EmailVerifiedPage
+        language={
+          language
+        }
+        onContinue={
+          handleVerificationContinue
+        }
+      />
     )
   }
 

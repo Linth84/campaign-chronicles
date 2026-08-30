@@ -607,7 +607,7 @@ function AuthPage({
 
       try {
         const redirectTo =
-          `${window.location.origin}${window.location.pathname}`
+          `${window.location.origin}${window.location.pathname}?recovery=1&lang=${language}`
 
         const {
           error:
@@ -793,6 +793,9 @@ function AuthPage({
                 password,
 
                 options: {
+                  emailRedirectTo:
+                    `${window.location.origin}${window.location.pathname}?verified=1&lang=${language}`,
+
                   data: {
                     display_name:
                       displayName.trim(),
