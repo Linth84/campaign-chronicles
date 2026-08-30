@@ -796,6 +796,8 @@ function AuthPage({
                   data: {
                     display_name:
                       displayName.trim(),
+
+                    language,
                   },
                 },
               },
