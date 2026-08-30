@@ -1,3 +1,4 @@
+import { useConfirm } from '../components/ConfirmProvider'
 import {
   useEffect,
   useRef,
@@ -10,6 +11,10 @@ import {
   LuDownload,
   LuFileText,
   LuGamepad2,
+  LuMail,
+  LuLogOut,
+  LuShieldCheck,
+  LuX,
   LuPlus,
   LuTrash2,
   LuUpload,
@@ -27,6 +32,7 @@ import {
   supabase,
 } from '../utils/supabase'
 import AppHeader from '../components/AppHeader'
+import '../styles/dashboard-invitations.css'
 
 /* =========================================================
    TIPOS
@@ -35,6 +41,11 @@ import AppHeader from '../components/AppHeader'
 type Language =
   | 'en'
   | 'es'
+
+type CampaignRole =
+  | 'gm'
+  | 'co_gm'
+  | 'player'
 
 interface DashboardPageProps {
   language: Language
@@ -59,6 +70,16 @@ interface DashboardPageProps {
   ) => void
 }
 
+interface CampaignInvite {
+  invite_id: string
+  campaign_id: string
+  campaign_name: string
+  role: 'co_gm' | 'player'
+  invited_by_name: string
+  created_at: string
+  expires_at: string
+}
+
 interface Campaign {
   id: string
   owner_id: string
@@ -70,6 +91,7 @@ interface Campaign {
   banner_path: string | null
   created_at: string
   updated_at: string
+  role?: CampaignRole | null
 }
 
 /* =========================================================
@@ -141,6 +163,15 @@ const translations = {
     deleteError:
       'We could not delete the campaign.',
 
+    leaveCampaign:
+      'Leave Campaign',
+
+    leaveConfirm:
+      'Are you sure you want to leave this campaign? You will lose access unless you are invited again.',
+
+    leaveError:
+      'We could not leave the campaign.',
+
     noDescription:
       'No description yet.',
 
@@ -149,6 +180,48 @@ const translations = {
 
     unknownParty:
       'Party not specified',
+
+    roleGm:
+      'GM',
+
+    roleCoGm:
+      'Sub-GM',
+
+    rolePlayer:
+      'Player',
+
+    invitationsEyebrow:
+      'Campaign invitations',
+
+    invitationsTitle:
+      'You have a campaign invitation',
+
+    invitationsTitlePlural:
+      'You have campaign invitations',
+
+    invitationsText:
+      'Accept to add the campaign to your dashboard, or decline if you do not want to join.',
+
+    invitedBy:
+      'Invited by',
+
+    asRole:
+      'as',
+
+    acceptInvite:
+      'Accept',
+
+    declineInvite:
+      'Decline',
+
+    inviteExpires:
+      'Expires',
+
+    inviteActionError:
+      'We could not update this invitation.',
+
+    invitesLoadError:
+      'We could not load your invitations.',
   },
 
   es: {
@@ -159,7 +232,7 @@ const translations = {
       'Campañas',
 
     intro:
-      'Creá una nueva campaña o traé tus notas existentes a Campaign Chronicles.',
+      'Crea una nueva campaña o trae tus notas existentes a Campaign Chronicles.',
 
     createCampaign:
       'Crear campaña',
@@ -183,7 +256,7 @@ const translations = {
       'Todavía no hay campañas',
 
     emptyText:
-      'Creá tu primera campaña y empezá a construir la memoria de tu aventura.',
+      'Crea tu primera campaña y empieza a construir la memoria de tu aventura.',
 
     openCampaign:
       'Abrir campaña',
@@ -210,10 +283,19 @@ const translations = {
       'Eliminar campaña',
 
     deleteConfirm:
-      '¿Seguro que querés eliminar esta campaña? Esta acción no se puede deshacer.',
+      '¿Seguro que quieres eliminar esta campaña? Esta acción no se puede deshacer.',
 
     deleteError:
       'No pudimos eliminar la campaña.',
+
+    leaveCampaign:
+      'Salir de la campaña',
+
+    leaveConfirm:
+      '¿Seguro que quieres salir de esta campaña? Perderás el acceso a menos que vuelvan a invitarte.',
+
+    leaveError:
+      'No pudimos salir de la campaña.',
 
     noDescription:
       'Todavía no hay una descripción.',
@@ -223,6 +305,48 @@ const translations = {
 
     unknownParty:
       'Grupo no especificado',
+
+    roleGm:
+      'GM',
+
+    roleCoGm:
+      'Sub-GM',
+
+    rolePlayer:
+      'Jugador',
+
+    invitationsEyebrow:
+      'Invitaciones a campañas',
+
+    invitationsTitle:
+      'Tienes una invitación a una campaña',
+
+    invitationsTitlePlural:
+      'Tienes invitaciones a campañas',
+
+    invitationsText:
+      'Acepta para agregar la campaña a tu panel, o rechaza si no quieres unirte.',
+
+    invitedBy:
+      'Invitado por',
+
+    asRole:
+      'como',
+
+    acceptInvite:
+      'Aceptar',
+
+    declineInvite:
+      'Rechazar',
+
+    inviteExpires:
+      'Vence',
+
+    inviteActionError:
+      'No pudimos actualizar esta invitación.',
+
+    invitesLoadError:
+      'No pudimos cargar tus invitaciones.',
   },
 }
 
@@ -239,6 +363,7 @@ function DashboardPage({
   onImportCampaign,
   onOpenCampaign,
 }: DashboardPageProps) {
+  const confirmAction = useConfirm()
   const t =
     translations[
       language
@@ -249,6 +374,30 @@ function DashboardPage({
     setCampaigns,
   ] =
     useState<Campaign[]>([])
+
+  const [
+    invitations,
+    setInvitations,
+  ] =
+    useState<CampaignInvite[]>([])
+
+  const [
+    invitationsLoading,
+    setInvitationsLoading,
+  ] =
+    useState(true)
+
+  const [
+    invitationActionId,
+    setInvitationActionId,
+  ] =
+    useState<string | null>(null)
+
+  const [
+    invitationError,
+    setInvitationError,
+  ] =
+    useState('')
 
   const [
     loading,
@@ -449,9 +598,95 @@ function DashboardPage({
             throw error
           }
 
-          const loadedCampaigns =
+          const baseCampaigns =
             (data ??
               []) as Campaign[]
+
+          const {
+            data: userData,
+            error: userError,
+          } =
+            await supabase.auth.getUser()
+
+          if (
+            userError ||
+            !userData.user
+          ) {
+            throw (
+              userError ||
+              new Error(
+                'Usuario no disponible.',
+              )
+            )
+          }
+
+          const campaignIds =
+            baseCampaigns.map(
+              (campaign) =>
+                campaign.id,
+            )
+
+          let rolesByCampaign:
+            Record<string, CampaignRole> = {}
+
+          if (campaignIds.length > 0) {
+            const {
+              data: memberships,
+              error: membershipsError,
+            } =
+              await supabase
+                .from('campaign_members')
+                .select('campaign_id, role')
+                .eq(
+                  'user_id',
+                  userData.user.id,
+                )
+                .in(
+                  'campaign_id',
+                  campaignIds,
+                )
+
+            if (membershipsError) {
+              throw membershipsError
+            }
+
+            rolesByCampaign =
+              Object.fromEntries(
+                (memberships ?? [])
+                  .filter(
+                    (membership) =>
+                      membership.role === 'gm' ||
+                      membership.role === 'co_gm' ||
+                      membership.role === 'player',
+                  )
+                  .map(
+                    (membership) => [
+                      membership.campaign_id,
+                      membership.role as CampaignRole,
+                    ],
+                  ),
+              )
+          }
+
+          const loadedCampaigns =
+            baseCampaigns
+              .filter(
+                (campaign) =>
+                  Boolean(
+                    rolesByCampaign[
+                      campaign.id
+                    ],
+                  ),
+              )
+              .map(
+                (campaign) => ({
+                  ...campaign,
+                  role:
+                    rolesByCampaign[
+                      campaign.id
+                    ],
+                }),
+              )
 
           setCampaigns(
             loadedCampaigns,
@@ -532,6 +767,160 @@ function DashboardPage({
 
     void loadCampaigns()
   }, [t.loadError])
+
+  /* =======================================================
+     CARGAR INVITACIONES DEL USUARIO
+     ======================================================= */
+
+  const loadInvitations =
+    async () => {
+      setInvitationsLoading(true)
+      setInvitationError('')
+
+      try {
+        const {
+          data,
+          error,
+        } =
+          await supabase.rpc(
+            'get_my_campaign_invites',
+          )
+
+        if (error) {
+          throw error
+        }
+
+        setInvitations(
+          (data ??
+            []) as CampaignInvite[],
+        )
+      } catch (error) {
+        console.error(
+          'Error al cargar invitaciones:',
+          error,
+        )
+
+        setInvitationError(
+          t.invitesLoadError,
+        )
+      } finally {
+        setInvitationsLoading(false)
+      }
+    }
+
+  useEffect(() => {
+    void loadInvitations()
+  }, [t.invitesLoadError])
+
+  /* =======================================================
+     ACEPTAR INVITACIÓN
+     ======================================================= */
+
+  const acceptInvitation =
+    async (
+      invite:
+        CampaignInvite,
+    ) => {
+      setInvitationActionId(
+        invite.invite_id,
+      )
+      setInvitationError('')
+
+      try {
+        const {
+          error,
+        } =
+          await supabase.rpc(
+            'accept_campaign_invite',
+            {
+              invite_id:
+                invite.invite_id,
+            },
+          )
+
+        if (error) {
+          throw error
+        }
+
+        setInvitations(
+          (current) =>
+            current.filter(
+              (item) =>
+                item.invite_id !==
+                invite.invite_id,
+            ),
+        )
+
+        window.location.reload()
+      } catch (error) {
+        console.error(
+          'Error al aceptar invitación:',
+          error,
+        )
+
+        setInvitationError(
+          t.inviteActionError,
+        )
+      } finally {
+        setInvitationActionId(
+          null,
+        )
+      }
+    }
+
+  /* =======================================================
+     RECHAZAR INVITACIÓN
+     ======================================================= */
+
+  const declineInvitation =
+    async (
+      invite:
+        CampaignInvite,
+    ) => {
+      setInvitationActionId(
+        invite.invite_id,
+      )
+      setInvitationError('')
+
+      try {
+        const {
+          error,
+        } =
+          await supabase.rpc(
+            'decline_campaign_invite',
+            {
+              invite_id:
+                invite.invite_id,
+            },
+          )
+
+        if (error) {
+          throw error
+        }
+
+        setInvitations(
+          (current) =>
+            current.filter(
+              (item) =>
+                item.invite_id !==
+                invite.invite_id,
+            ),
+        )
+      } catch (error) {
+        console.error(
+          'Error al rechazar invitación:',
+          error,
+        )
+
+        setInvitationError(
+          t.inviteActionError,
+        )
+      } finally {
+        setInvitationActionId(
+          null,
+        )
+      }
+    }
 
   /* =======================================================
      CERRAR MENÚ AL HACER CLICK AFUERA
@@ -683,9 +1072,7 @@ function DashboardPage({
       campaign: Campaign,
     ) => {
       const confirmed =
-        window.confirm(
-          t.deleteConfirm,
-        )
+        await confirmAction({ message: t.deleteConfirm, variant: 'danger' })
 
       if (!confirmed) {
         return
@@ -740,6 +1127,87 @@ function DashboardPage({
             storageError,
           )
         }
+      }
+
+      setCampaignBannerUrls(
+        (
+          currentUrls,
+        ) => {
+          const nextUrls = {
+            ...currentUrls,
+          }
+
+          delete nextUrls[
+            campaign.id
+          ]
+
+          return nextUrls
+        },
+      )
+
+      setCampaigns(
+        (
+          currentCampaigns,
+        ) =>
+          currentCampaigns.filter(
+            (
+              currentCampaign,
+            ) =>
+              currentCampaign.id !==
+              campaign.id,
+          ),
+      )
+
+      setOpenMenuId(
+        null,
+      )
+    }
+
+  /* =======================================================
+     SALIR DE CAMPAÑA
+     Player y Sub-GM abandonan su membresía.
+     ======================================================= */
+
+  const leaveCampaign =
+    async (
+      campaign: Campaign,
+    ) => {
+      const confirmed =
+        await confirmAction({
+          message:
+            t.leaveConfirm,
+          variant:
+            'danger',
+        })
+
+      if (!confirmed) {
+        return
+      }
+
+      setErrorMessage('')
+
+      const {
+        error,
+      } =
+        await supabase.rpc(
+          'leave_campaign',
+          {
+            target_campaign_id:
+              campaign.id,
+          },
+        )
+
+      if (error) {
+        console.error(
+          'Error al salir de la campaña:',
+          error,
+        )
+
+        setErrorMessage(
+          t.leaveError,
+        )
+
+        return
       }
 
       setCampaignBannerUrls(
@@ -908,6 +1376,158 @@ function DashboardPage({
         </section>
 
         {/* =================================================
+            INVITACIONES PENDIENTES
+            ================================================= */}
+
+        {!invitationsLoading &&
+          invitations.length > 0 && (
+          <section className="dashboard-invitations">
+            <div className="dashboard-invitations-heading">
+              <div className="dashboard-invitations-icon">
+                <LuMail />
+              </div>
+
+              <div>
+                <p className="dashboard-invitations-eyebrow">
+                  {t.invitationsEyebrow}
+                </p>
+
+                <h2>
+                  {invitations.length === 1
+                    ? t.invitationsTitle
+                    : t.invitationsTitlePlural}
+                </h2>
+
+                <p>
+                  {t.invitationsText}
+                </p>
+              </div>
+            </div>
+
+            <div className="dashboard-invitations-list">
+              {invitations.map(
+                (invite) => {
+                  const busy =
+                    invitationActionId ===
+                    invite.invite_id
+
+                  return (
+                    <article
+                      key={
+                        invite.invite_id
+                      }
+                      className="dashboard-invitation-card"
+                    >
+                      <div className="dashboard-invitation-main">
+                        <div className="dashboard-invitation-symbol">
+                          <LuShieldCheck />
+                        </div>
+
+                        <div>
+                          <strong>
+                            {invite.campaign_name}
+                          </strong>
+
+                          <p className="dashboard-invitation-inviter">
+                            {t.invitedBy}{' '}
+                            <strong>
+                              {invite.invited_by_name}
+                            </strong>{' '}
+                            {t.asRole}{' '}
+                            <strong>
+                              {invite.role === 'co_gm'
+                                ? t.roleCoGm
+                                : t.rolePlayer}
+                            </strong>
+                          </p>
+
+                          <div className="dashboard-invitation-meta">
+                            <span
+                              className={
+                                invite.role === 'co_gm'
+                                  ? 'campaign-role-badge campaign-role-badge-co-gm'
+                                  : 'campaign-role-badge campaign-role-badge-player'
+                              }
+                            >
+                              {invite.role === 'co_gm'
+                                ? t.roleCoGm
+                                : t.rolePlayer}
+                            </span>
+
+                            <span>
+                              {t.inviteExpires}{' '}
+                              {new Intl.DateTimeFormat(
+                                language === 'es'
+                                  ? 'es-AR'
+                                  : 'en-US',
+                                {
+                                  year: 'numeric',
+                                  month: 'short',
+                                  day: 'numeric',
+                                },
+                              ).format(
+                                new Date(
+                                  invite.expires_at,
+                                ),
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="dashboard-invitation-actions">
+                        <button
+                          type="button"
+                          className="dashboard-invitation-decline"
+                          disabled={busy}
+                          onClick={() =>
+                            void declineInvitation(
+                              invite,
+                            )
+                          }
+                        >
+                          <LuX />
+
+                          <span>
+                            {t.declineInvite}
+                          </span>
+                        </button>
+
+                        <button
+                          type="button"
+                          className="dashboard-invitation-accept"
+                          disabled={busy}
+                          onClick={() =>
+                            void acceptInvitation(
+                              invite,
+                            )
+                          }
+                        >
+                          <LuShieldCheck />
+
+                          <span>
+                            {t.acceptInvite}
+                          </span>
+                        </button>
+                      </div>
+                    </article>
+                  )
+                },
+              )}
+            </div>
+          </section>
+        )}
+
+        {invitationError && (
+          <div
+            className="dashboard-feedback"
+            role="alert"
+          >
+            {invitationError}
+          </div>
+        )}
+
+        {/* =================================================
             ERROR
             ================================================= */}
 
@@ -1007,8 +1627,28 @@ function DashboardPage({
                           ================================= */}
 
                       <div className="campaign-card-header">
-                        <div className="campaign-card-symbol">
+                        <div className="campaign-card-identity">
+                          <div className="campaign-card-symbol">
                           <LuBookOpen />
+                        </div>
+
+                          {campaign.role && (
+                            <span
+                              className={
+                                campaign.role === 'gm'
+                                  ? 'campaign-role-badge campaign-role-badge-gm'
+                                  : campaign.role === 'co_gm'
+                                    ? 'campaign-role-badge campaign-role-badge-co-gm'
+                                    : 'campaign-role-badge campaign-role-badge-player'
+                              }
+                            >
+                              {campaign.role === 'gm'
+                                ? t.roleGm
+                                : campaign.role === 'co_gm'
+                                  ? t.roleCoGm
+                                  : t.rolePlayer}
+                            </span>
+                          )}
                         </div>
 
                         <div
@@ -1113,26 +1753,50 @@ function DashboardPage({
                                 </span>
                               </button>
 
-                              <button
-                                type="button"
-                                className="campaign-menu-danger"
-                                disabled={
-                                  isExporting
-                                }
-                                onClick={() =>
-                                  void deleteCampaign(
-                                    campaign,
-                                  )
-                                }
-                              >
-                                <LuTrash2 />
-
-                                <span>
-                                  {
-                                    t.deleteCampaign
+                              {campaign.role ===
+                              'gm' ? (
+                                <button
+                                  type="button"
+                                  className="campaign-menu-danger"
+                                  disabled={
+                                    isExporting
                                   }
-                                </span>
-                              </button>
+                                  onClick={() =>
+                                    void deleteCampaign(
+                                      campaign,
+                                    )
+                                  }
+                                >
+                                  <LuTrash2 />
+
+                                  <span>
+                                    {
+                                      t.deleteCampaign
+                                    }
+                                  </span>
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  className="campaign-menu-danger"
+                                  disabled={
+                                    isExporting
+                                  }
+                                  onClick={() =>
+                                    void leaveCampaign(
+                                      campaign,
+                                    )
+                                  }
+                                >
+                                  <LuLogOut />
+
+                                  <span>
+                                    {
+                                      t.leaveCampaign
+                                    }
+                                  </span>
+                                </button>
+                              )}
                             </div>
                           )}
                         </div>

@@ -7,6 +7,16 @@ import type {
   Session,
 } from '@supabase/supabase-js'
 
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+  useParams,
+} from 'react-router-dom'
+
 import LandingPage from './pages/LandingPage'
 import AuthPage from './pages/AuthPage'
 import DashboardPage from './pages/DashboardPage'
@@ -16,8 +26,15 @@ import CreateCampaignPage from './pages/CreateCampaignPage'
 import ImportCampaignPage from './pages/ImportCampaignPage'
 import CampaignPage from './pages/CampaignPage'
 import ProfilePage from './pages/ProfilePage'
-import './components/MagicCursor'
 import EmailVerifiedPage from './pages/EmailVerifiedPage'
+import InvitePage from './pages/InvitePage'
+import PublicHeader from './components/PublicHeader'
+import AboutPage from './pages/AboutPage'
+import FeaturesPage from './pages/FeaturesPage'
+import FaqPage from './pages/FaqPage'
+import SupportPage from './pages/SupportPage'
+
+import './components/MagicCursor'
 
 import {
   supabase,
@@ -33,28 +50,179 @@ type Language =
   | 'en'
   | 'es'
 
-type PublicView =
-  | 'landing'
-  | 'auth'
-  | 'terms'
-  | 'privacy'
-
-type PrivateView =
-  | 'dashboard'
-  | 'create-campaign'
-  | 'import-campaign'
-  | 'campaign'
-  | 'profile'
-
 type AuthMode =
   | 'login'
   | 'signup'
 
 /* =========================================================
-   APP
+   RUTA DE AUTENTICACIÓN
    ========================================================= */
 
-function App() {
+interface AuthRouteProps {
+  language: Language
+
+  passwordRecovery: boolean
+
+  onRecoveryComplete:
+    () => void
+
+  onOpenTerms:
+    () => void
+
+  onOpenPrivacy:
+    () => void
+}
+
+function AuthRoute({
+  language,
+  passwordRecovery,
+  onRecoveryComplete,
+  onOpenTerms,
+  onOpenPrivacy,
+}: AuthRouteProps) {
+  const navigate =
+    useNavigate()
+
+  const {
+    mode,
+  } =
+    useParams<{
+      mode?: string
+    }>()
+
+  const authMode:
+    AuthMode =
+    mode === 'signup'
+      ? 'signup'
+      : 'login'
+
+  const changeAuthMode = (
+    nextMode: AuthMode,
+  ) => {
+    navigate(
+      `/auth/${nextMode}`,
+    )
+  }
+
+  const closeAuth =
+    () => {
+      navigate('/')
+    }
+
+  return (
+    <AuthPage
+      language={
+        language
+      }
+      mode={
+        passwordRecovery
+          ? 'login'
+          : authMode
+      }
+      onModeChange={
+        changeAuthMode
+      }
+      onClose={
+        passwordRecovery
+          ? () => {}
+          : closeAuth
+      }
+      onOpenTerms={
+        onOpenTerms
+      }
+      onOpenPrivacy={
+        onOpenPrivacy
+      }
+      recoveryMode={
+        passwordRecovery
+      }
+      onRecoveryComplete={
+        onRecoveryComplete
+      }
+    />
+  )
+}
+
+/* =========================================================
+   RUTA DE CAMPAÑA
+   ========================================================= */
+
+interface CampaignRouteProps {
+  language: Language
+
+  onLanguageChange: (
+    language: Language,
+  ) => void
+
+  onSignOut:
+    () => void
+
+  onOpenProfile:
+    () => void
+}
+
+function CampaignRoute({
+  language,
+  onLanguageChange,
+  onSignOut,
+  onOpenProfile,
+}: CampaignRouteProps) {
+  const navigate =
+    useNavigate()
+
+  const {
+    campaignId,
+  } =
+    useParams<{
+      campaignId: string
+    }>()
+
+  if (!campaignId) {
+    return (
+      <Navigate
+        to="/dashboard"
+        replace
+      />
+    )
+  }
+
+  return (
+    <CampaignPage
+      language={
+        language
+      }
+      campaignId={
+        campaignId
+      }
+      onLanguageChange={
+        onLanguageChange
+      }
+      onBack={() =>
+        navigate(
+          '/dashboard',
+        )
+      }
+      onSignOut={
+        onSignOut
+      }
+      onOpenProfile={
+        onOpenProfile
+      }
+    />
+  )
+}
+
+/* =========================================================
+   APP INTERNA
+   ========================================================= */
+
+function AppContent() {
+  const navigate =
+    useNavigate()
+
+  const location =
+    useLocation()
+
   /* =======================================================
      IDIOMA
      ======================================================= */
@@ -116,7 +284,6 @@ function App() {
   ] =
     useState(true)
 
-
   const [
     passwordRecovery,
     setPasswordRecovery,
@@ -140,46 +307,6 @@ function App() {
     })
 
   /* =======================================================
-     NAVEGACIÓN PÚBLICA
-     ======================================================= */
-
-  const [
-    publicView,
-    setPublicView,
-  ] =
-    useState<PublicView>(
-      'landing',
-    )
-
-  const [
-    authMode,
-    setAuthMode,
-  ] =
-    useState<AuthMode>(
-      'login',
-    )
-
-  /* =======================================================
-     NAVEGACIÓN PRIVADA
-     ======================================================= */
-
-  const [
-    privateView,
-    setPrivateView,
-  ] =
-    useState<PrivateView>(
-      'dashboard',
-    )
-
-  const [
-    selectedCampaignId,
-    setSelectedCampaignId,
-  ] =
-    useState<string | null>(
-      null,
-    )
-
-  /* =======================================================
      CAMBIAR IDIOMA
      ======================================================= */
 
@@ -195,128 +322,6 @@ function App() {
       newLanguage,
     )
   }
-
-  /* =======================================================
-     AUTH
-     ======================================================= */
-
-  const openAuth = (
-    mode: AuthMode,
-  ) => {
-    setAuthMode(mode)
-
-    setPublicView(
-      'auth',
-    )
-  }
-
-  const closeAuth =
-    () => {
-      setPublicView(
-        'landing',
-      )
-    }
-
-  /* =======================================================
-     LEGALES
-     ======================================================= */
-
-  const openTerms =
-    () => {
-      setPublicView(
-        'terms',
-      )
-    }
-
-  const openPrivacy =
-    () => {
-      setPublicView(
-        'privacy',
-      )
-    }
-
-  const returnToAuth =
-    () => {
-      setPublicView(
-        'auth',
-      )
-    }
-
-  /* =======================================================
-     CREAR CAMPAÑA
-     ======================================================= */
-
-  const openCreateCampaign =
-    () => {
-      setSelectedCampaignId(
-        null,
-      )
-
-      setPrivateView(
-        'create-campaign',
-      )
-    }
-
-  /* =======================================================
-     IMPORTAR CAMPAÑA
-     ======================================================= */
-
-  const openImportCampaign =
-    () => {
-      setSelectedCampaignId(
-        null,
-      )
-
-      setPrivateView(
-        'import-campaign',
-      )
-    }
-
-  /* =======================================================
-     ABRIR PERFIL
-     ======================================================= */
-
-  const openProfile =
-    () => {
-      setSelectedCampaignId(
-        null,
-      )
-
-      setPrivateView(
-        'profile',
-      )
-    }
-
-  /* =======================================================
-     ABRIR CAMPAÑA
-     ======================================================= */
-
-  const openCampaign = (
-    campaignId: string,
-  ) => {
-    setSelectedCampaignId(
-      campaignId,
-    )
-
-    setPrivateView(
-      'campaign',
-    )
-  }
-
-  /* =======================================================
-     VOLVER AL DASHBOARD
-     ======================================================= */
-
-  const returnToDashboard =
-    () => {
-      setSelectedCampaignId(
-        null,
-      )
-
-      setPrivateView(
-        'dashboard',
-      )
-    }
 
   /* =======================================================
      RECUPERAR SESIÓN DE SUPABASE
@@ -381,8 +386,11 @@ function App() {
               true,
             )
 
-            setPublicView(
-              'auth',
+            navigate(
+              '/auth/login',
+              {
+                replace: true,
+              },
             )
           }
 
@@ -393,18 +401,6 @@ function App() {
           setSessionLoading(
             false,
           )
-
-          if (
-            !currentSession
-          ) {
-            setSelectedCampaignId(
-              null,
-            )
-
-            setPrivateView(
-              'dashboard',
-            )
-          }
         },
       )
 
@@ -413,7 +409,45 @@ function App() {
 
       authListener.subscription.unsubscribe()
     }
-  }, [])
+  }, [
+    navigate,
+  ])
+
+  /* =======================================================
+     REDIRECCIÓN DESPUÉS DEL LOGIN
+     ======================================================= */
+
+  useEffect(() => {
+    if (
+      sessionLoading ||
+      !session ||
+      passwordRecovery ||
+      emailVerificationSuccess
+    ) {
+      return
+    }
+
+    if (
+      location.pathname === '/' ||
+      location.pathname.startsWith(
+        '/auth',
+      )
+    ) {
+      navigate(
+        '/dashboard',
+        {
+          replace: true,
+        },
+      )
+    }
+  }, [
+    emailVerificationSuccess,
+    location.pathname,
+    navigate,
+    passwordRecovery,
+    session,
+    sessionLoading,
+  ])
 
   /* =======================================================
      FINALIZAR RECUPERACIÓN DE CONTRASEÑA
@@ -425,8 +459,11 @@ function App() {
         false,
       )
 
-      setPrivateView(
-        'dashboard',
+      navigate(
+        '/dashboard',
+        {
+          replace: true,
+        },
       )
     }
 
@@ -450,12 +487,6 @@ function App() {
         return
       }
 
-      window.history.replaceState(
-        {},
-        '',
-        window.location.pathname,
-      )
-
       setEmailVerificationSuccess(
         false,
       )
@@ -464,12 +495,11 @@ function App() {
         null,
       )
 
-      setAuthMode(
-        'login',
-      )
-
-      setPublicView(
-        'auth',
+      navigate(
+        '/auth/login',
+        {
+          replace: true,
+        },
       )
     }
 
@@ -493,26 +523,83 @@ function App() {
         return
       }
 
-      setSelectedCampaignId(
+      setSession(
         null,
-      )
-
-      setPrivateView(
-        'dashboard',
-      )
-
-      setPublicView(
-        'landing',
-      )
-
-      setAuthMode(
-        'login',
       )
 
       setPasswordRecovery(
         false,
       )
+
+      navigate(
+        '/',
+        {
+          replace: true,
+        },
+      )
     }
+
+  /* =======================================================
+     NAVEGACIÓN
+     ======================================================= */
+
+  const openProfile =
+    () => {
+      navigate('/profile')
+    }
+
+  const openCreateCampaign =
+    () => {
+      navigate(
+        '/create-campaign',
+      )
+    }
+
+  const openImportCampaign =
+    () => {
+      navigate(
+        '/import-campaign',
+      )
+    }
+
+  const openCampaign = (
+    campaignId: string,
+  ) => {
+    navigate(
+      `/campaign/${campaignId}/overview`,
+    )
+  }
+
+  const returnToDashboard =
+    () => {
+      navigate('/dashboard')
+    }
+
+  const openTerms =
+    () => {
+      navigate('/terms')
+    }
+
+  const openPrivacy =
+    () => {
+      navigate('/privacy')
+    }
+
+  const returnToAuth =
+    () => {
+      navigate('/auth/login')
+    }
+
+  const openPublicPage = (
+    path: string,
+  ) => {
+    navigate(path)
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    })
+  }
+
 
   /* =======================================================
      PANTALLA DE CARGA
@@ -557,24 +644,19 @@ function App() {
     passwordRecovery
   ) {
     return (
-      <AuthPage
+      <AuthRoute
         language={
           language
         }
-        mode="login"
-        onModeChange={
-          setAuthMode
+        passwordRecovery
+        onRecoveryComplete={
+          handleRecoveryComplete
         }
-        onClose={() => {}}
         onOpenTerms={
           openTerms
         }
         onOpenPrivacy={
           openPrivacy
-        }
-        recoveryMode
-        onRecoveryComplete={
-          handleRecoveryComplete
         }
       />
     )
@@ -585,260 +667,323 @@ function App() {
      ======================================================= */
 
   if (session) {
-    /* =====================================================
-       PERFIL
-       ===================================================== */
-
-    if (
-      privateView ===
-      'profile'
-    ) {
-      return (
-        <ProfilePage
-          language={
-            language
-          }
-          onLanguageChange={
-            changeLanguage
-          }
-          onBack={
-            returnToDashboard
-          }
-          onSignOut={
-            handleSignOut
-          }
-        />
-      )
-    }
-
-    /* =====================================================
-       CREAR CAMPAÑA
-       ===================================================== */
-
-    if (
-      privateView ===
-      'create-campaign'
-    ) {
-      return (
-        <CreateCampaignPage
-          language={
-            language
-          }
-          onBack={
-            returnToDashboard
-          }
-          onCreated={
-            returnToDashboard
-          }
-          onLanguageChange={
-            changeLanguage
-          }
-          onOpenProfile={
-            openProfile
-          }
-          onSignOut={
-            handleSignOut
-          }
-        />
-      )
-    }
-
-    /* =====================================================
-       IMPORTAR CAMPAÑA
-       ===================================================== */
-
-    if (
-      privateView ===
-      'import-campaign'
-    ) {
-      return (
-        <ImportCampaignPage
-          language={
-            language
-          }
-          onBack={
-            returnToDashboard
-          }
-          onImported={
-            returnToDashboard
-          }
-          onLanguageChange={
-            changeLanguage
-          }
-          onOpenProfile={
-            openProfile
-          }
-          onSignOut={
-            handleSignOut
-          }
-        />
-      )
-    }
-
-    /* =====================================================
-       INTERIOR DE CAMPAÑA
-       ===================================================== */
-
-    if (
-      privateView ===
-        'campaign' &&
-      selectedCampaignId
-    ) {
-      return (
-        <CampaignPage
-          language={
-            language
-          }
-          campaignId={
-            selectedCampaignId
-          }
-          onLanguageChange={
-            changeLanguage
-          }
-          onBack={
-            returnToDashboard
-          }
-          onSignOut={
-            handleSignOut
-          }
-          onOpenProfile={
-            openProfile
-          }
-        />
-      )
-    }
-
-    /* =====================================================
-       DASHBOARD
-       ===================================================== */
-
     return (
-      <DashboardPage
-        language={
-          language
-        }
-        onLanguageChange={
-          changeLanguage
-        }
-        onSignOut={
-          handleSignOut
-        }
-        onOpenProfile={
-          openProfile
-        }
-        onCreateCampaign={
-          openCreateCampaign
-        }
-        onImportCampaign={
-          openImportCampaign
-        }
-        onOpenCampaign={
-          openCampaign
-        }
-      />
+      <Routes>
+        <Route
+          path="/dashboard"
+          element={
+            <DashboardPage
+              language={
+                language
+              }
+              onLanguageChange={
+                changeLanguage
+              }
+              onSignOut={
+                handleSignOut
+              }
+              onOpenProfile={
+                openProfile
+              }
+              onCreateCampaign={
+                openCreateCampaign
+              }
+              onImportCampaign={
+                openImportCampaign
+              }
+              onOpenCampaign={
+                openCampaign
+              }
+            />
+          }
+        />
+
+        <Route
+          path="/profile"
+          element={
+            <ProfilePage
+              language={
+                language
+              }
+              onLanguageChange={
+                changeLanguage
+              }
+              onBack={
+                returnToDashboard
+              }
+              onSignOut={
+                handleSignOut
+              }
+            />
+          }
+        />
+
+        <Route
+          path="/create-campaign"
+          element={
+            <CreateCampaignPage
+              language={
+                language
+              }
+              onBack={
+                returnToDashboard
+              }
+              onCreated={
+                returnToDashboard
+              }
+              onLanguageChange={
+                changeLanguage
+              }
+              onOpenProfile={
+                openProfile
+              }
+              onSignOut={
+                handleSignOut
+              }
+            />
+          }
+        />
+
+        <Route
+          path="/import-campaign"
+          element={
+            <ImportCampaignPage
+              language={
+                language
+              }
+              onBack={
+                returnToDashboard
+              }
+              onImported={
+                returnToDashboard
+              }
+              onLanguageChange={
+                changeLanguage
+              }
+              onOpenProfile={
+                openProfile
+              }
+              onSignOut={
+                handleSignOut
+              }
+            />
+          }
+        />
+
+        <Route
+          path="/campaign/:campaignId"
+          element={
+            <Navigate
+              to="overview"
+              replace
+            />
+          }
+        />
+
+        <Route
+          path="/campaign/:campaignId/:section"
+          element={
+            <CampaignRoute
+              language={
+                language
+              }
+              onLanguageChange={
+                changeLanguage
+              }
+              onSignOut={
+                handleSignOut
+              }
+              onOpenProfile={
+                openProfile
+              }
+            />
+          }
+        />
+
+
+        <Route path="/about" element={<AboutPage language={language} />} />
+        <Route path="/features" element={<FeaturesPage language={language} />} />
+        <Route path="/faq" element={<FaqPage language={language} />} />
+        <Route path="/support" element={<SupportPage language={language} />} />
+
+        <Route
+          path="/invite"
+          element={
+            <Navigate
+              to="/dashboard"
+              replace
+            />
+          }
+        />
+
+        <Route
+          path="*"
+          element={
+            <Navigate
+              to="/dashboard"
+              replace
+            />
+          }
+        />
+      </Routes>
     )
   }
 
   /* =======================================================
-     TÉRMINOS
-     ======================================================= */
-
-  if (
-    publicView ===
-    'terms'
-  ) {
-    return (
-      <TermsPage
-        language={
-          language
-        }
-        onLanguageChange={
-          changeLanguage
-        }
-        onBack={
-          returnToAuth
-        }
-      />
-    )
-  }
-
-  /* =======================================================
-     PRIVACIDAD
-     ======================================================= */
-
-  if (
-    publicView ===
-    'privacy'
-  ) {
-    return (
-      <PrivacyPage
-        language={
-          language
-        }
-        onLanguageChange={
-          changeLanguage
-        }
-        onBack={
-          returnToAuth
-        }
-      />
-    )
-  }
-
-  /* =======================================================
-     AUTH
-     ======================================================= */
-
-  if (
-    publicView ===
-    'auth'
-  ) {
-    return (
-      <AuthPage
-        language={
-          language
-        }
-        mode={
-          authMode
-        }
-        onModeChange={
-          setAuthMode
-        }
-        onClose={
-          closeAuth
-        }
-        onOpenTerms={
-          openTerms
-        }
-        onOpenPrivacy={
-          openPrivacy
-        }
-        recoveryMode={
-          false
-        }
-        onRecoveryComplete={
-          handleRecoveryComplete
-        }
-      />
-    )
-  }
-
-  /* =======================================================
-     LANDING
+     ÁREA PÚBLICA
      ======================================================= */
 
   return (
-    <LandingPage
-      language={
-        language
-      }
-      onLanguageChange={
-        changeLanguage
-      }
-      onOpenAuth={
-        openAuth
-      }
-    />
+    <div className="public-shell">
+      <PublicHeader
+        language={language}
+        onLanguageChange={
+          changeLanguage
+        }
+        onNavigate={
+          openPublicPage
+        }
+        onSignIn={() =>
+          navigate('/auth/login')
+        }
+      />
+
+      <Routes>
+        <Route
+          path="/"
+        element={
+          <LandingPage
+            language={
+              language
+            }
+            onOpenAuth={(
+              mode,
+            ) =>
+              navigate(
+                `/auth/${mode}`,
+              )
+            }
+          />
+        }
+      />
+
+
+      <Route path="/about" element={<AboutPage language={language} />} />
+        <Route path="/features" element={<FeaturesPage language={language} />} />
+        <Route path="/faq" element={<FaqPage language={language} />} />
+        <Route path="/support" element={<SupportPage language={language} />} />
+
+      <Route
+        path="/invite"
+        element={
+          <InvitePage
+            language={
+              language
+            }
+            onCreateAccount={() =>
+              navigate(
+                '/auth/signup?from=invite',
+              )
+            }
+            onSignIn={() =>
+              navigate(
+                '/auth/login?from=invite',
+              )
+            }
+          />
+        }
+      />
+
+      <Route
+        path="/auth"
+        element={
+          <Navigate
+            to="/auth/login"
+            replace
+          />
+        }
+      />
+
+      <Route
+        path="/auth/:mode"
+        element={
+          <AuthRoute
+            language={
+              language
+            }
+            passwordRecovery={
+              false
+            }
+            onRecoveryComplete={
+              handleRecoveryComplete
+            }
+            onOpenTerms={
+              openTerms
+            }
+            onOpenPrivacy={
+              openPrivacy
+            }
+          />
+        }
+      />
+
+      <Route
+        path="/terms"
+        element={
+          <TermsPage
+            language={
+              language
+            }
+            onLanguageChange={
+              changeLanguage
+            }
+            onBack={
+              returnToAuth
+            }
+          />
+        }
+      />
+
+      <Route
+        path="/privacy"
+        element={
+          <PrivacyPage
+            language={
+              language
+            }
+            onLanguageChange={
+              changeLanguage
+            }
+            onBack={
+              returnToAuth
+            }
+          />
+        }
+      />
+
+        <Route
+          path="*"
+          element={
+            <Navigate
+              to="/"
+              replace
+            />
+          }
+        />
+      </Routes>
+    </div>
+  )
+}
+
+/* =========================================================
+   APP
+   ========================================================= */
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
   )
 }
 

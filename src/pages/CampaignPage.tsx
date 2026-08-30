@@ -1,3 +1,4 @@
+import { useConfirm } from '../components/ConfirmProvider'
 import {
   useEffect,
   useState,
@@ -9,14 +10,23 @@ import type {
 } from 'react'
 
 import {
+  useNavigate,
+  useParams,
+} from 'react-router-dom'
+
+import {
   LuArrowLeft,
   LuBookOpen,
   LuBox,
   LuCalendarDays,
+  LuClock3,
   LuFilePenLine,
   LuImagePlus,
   LuLayoutDashboard,
   LuMap,
+  LuNetwork,
+  LuLock,
+  LuNotebookPen,
   LuNotebookTabs,
   LuPlus,
   LuSave,
@@ -32,8 +42,14 @@ import CharactersSection from '../components/CharactersSection'
 import ItemsSection from '../components/ItemsSection'
 import LocationsSection from '../components/LocationsSection'
 import NotesSection from '../components/NotesSection'
+import MyNotesSection from '../components/MyNotesSection'
+import GmNotesSection from '../components/GmNotesSection'
+import MembersSection from '../components/MembersSection'
 import NpcsSection from '../components/NpcsSection'
 import OverviewSection from '../components/OverviewSection'
+import TimelineSection from '../components/TimelineSection'
+import RelationshipsSection from '../components/RelationshipsSection'
+import QuickCapture from '../components/QuickCapture'
 import AppHeader from '../components/AppHeader'
 import QuestsSection from '../components/QuestsSection'
 import {
@@ -48,15 +64,42 @@ type Language =
   | 'en'
   | 'es'
 
+type CampaignRole =
+  | 'gm'
+  | 'co_gm'
+  | 'player'
+
 type CampaignSection =
   | 'overview'
   | 'sessions'
+  | 'timeline'
+  | 'relationships'
   | 'characters'
   | 'npcs'
   | 'locations'
   | 'quests'
   | 'items'
   | 'notes'
+  | 'my-notes'
+  | 'gm-notes'
+  | 'members'
+
+const campaignSections:
+  CampaignSection[] = [
+    'overview',
+    'sessions',
+    'timeline',
+    'relationships',
+    'characters',
+    'npcs',
+    'locations',
+    'quests',
+    'items',
+    'notes',
+    'my-notes',
+    'gm-notes',
+    'members',
+  ]
 
 interface CampaignPageProps {
   language: Language
@@ -224,6 +267,12 @@ const translations = {
     sessions:
       'Sessions',
 
+    timeline:
+      'Timeline',
+
+    relationships:
+      'Relationships',
+
     characters:
       'Characters',
 
@@ -241,6 +290,15 @@ const translations = {
 
     notes:
       'Notes',
+
+    myNotes:
+      'My Notes',
+
+    gmNotes:
+      'GM Notes',
+
+    members:
+      'Members',
 
     search:
       'Search campaign...',
@@ -379,6 +437,15 @@ const translations = {
 
     updated:
       'Session updated.',
+
+    roleGm:
+      'GM',
+
+    roleCoGm:
+      'Sub-GM',
+
+    rolePlayer:
+      'Player',
   },
 
   es: {
@@ -401,7 +468,7 @@ const translations = {
       'Subiendo...',
 
     bannerFileError:
-      'Elegí una imagen JPG, PNG o WebP de hasta 3 MB.',
+      'Elige una imagen JPG, PNG o WebP de hasta 3 MB.',
 
     bannerUploadError:
       'No pudimos guardar el banner de la campaña.',
@@ -416,7 +483,7 @@ const translations = {
       'Datos de la campaña',
 
     editCampaignText:
-      'Actualizá la información que se muestra en toda la campaña.',
+      'Actualiza la información que se muestra en toda la campaña.',
 
     campaignName:
       'Nombre de la campaña',
@@ -449,7 +516,7 @@ const translations = {
       'Guardar cambios',
 
     campaignNameRequired:
-      'Poné un nombre a la campaña antes de guardar.',
+      'Pon un nombre a la campaña antes de guardar.',
 
     campaignSaveError:
       'No pudimos guardar los cambios de la campaña.',
@@ -469,6 +536,12 @@ const translations = {
     sessions:
       'Sesiones',
 
+    timeline:
+      'Timeline',
+
+    relationships:
+      'Relaciones',
+
     characters:
       'Personajes',
 
@@ -487,6 +560,15 @@ const translations = {
     notes:
       'Notas',
 
+    myNotes:
+      'Mis notas',
+
+    gmNotes:
+      'Notas del GM',
+
+    members:
+      'Miembros',
+
     search:
       'Buscar en la campaña...',
 
@@ -500,16 +582,16 @@ const translations = {
       'No pudimos buscar en la campaña.',
 
     searchHint:
-      'Escribí al menos 2 caracteres.',
+      'Escribe al menos 2 caracteres.',
 
     campaignOverview:
       'Resumen de campaña',
 
     welcomeTitle:
-      'La memoria de tu campaña empieza acá.',
+      'La memoria de tu campaña empieza aquí.',
 
     welcomeText:
-      'Sesiones, personajes, lugares, misiones, objetos y notas se van a conectar acá a medida que crece tu aventura.',
+      'Sesiones, personajes, lugares, misiones, objetos y notas se conectarán aquí a medida que crece tu aventura.',
 
     system:
       'Sistema',
@@ -536,7 +618,7 @@ const translations = {
       'Sesiones',
 
     sessionsDescription:
-      'Guardá un registro de cada capítulo de tu aventura.',
+      'Guarda un registro de cada capítulo de tu aventura.',
 
     newSession:
       'Nueva sesión',
@@ -545,7 +627,7 @@ const translations = {
       'Todavía no registraste ninguna sesión.',
 
     noSessionsText:
-      'Creá la primera sesión y empezá a construir la historia de esta campaña.',
+      'Crea la primera sesión y empieza a construir la historia de esta campaña.',
 
     session:
       'Sesión',
@@ -614,7 +696,7 @@ const translations = {
       'No pudimos eliminar esta sesión.',
 
     sessionTitleRequired:
-      'Escribí un título para la sesión antes de guardarla.',
+      'Escribe un título para la sesión antes de guardarla.',
 
     deleteSessionConfirm:
       '¿Eliminar esta sesión? Esta acción no se puede deshacer.',
@@ -624,6 +706,15 @@ const translations = {
 
     updated:
       'Sesión actualizada.',
+
+    roleGm:
+      'GM',
+
+    roleCoGm:
+      'Sub-GM',
+
+    rolePlayer:
+      'Jugador',
   },
 }
 
@@ -639,6 +730,7 @@ function CampaignPage({
   onSignOut,
   onOpenProfile,
 }: CampaignPageProps) {
+  const confirmAction = useConfirm()
   const t =
     translations[
       language
@@ -652,6 +744,14 @@ function CampaignPage({
       null,
     )
 
+
+  const [
+    campaignRole,
+    setCampaignRole,
+  ] =
+    useState<CampaignRole | null>(
+      null,
+    )
 
   const [
     campaignBannerUrl,
@@ -719,13 +819,37 @@ function CampaignPage({
   ] =
     useState('')
 
-  const [
-    activeSection,
-    setActiveSection,
-  ] =
-    useState<CampaignSection>(
-      'overview',
+  const navigate =
+    useNavigate()
+
+  const {
+    section,
+  } =
+    useParams<{
+      section?: string
+    }>()
+
+  const activeSection:
+    CampaignSection =
+    section &&
+    campaignSections.includes(
+      section as CampaignSection,
     )
+      ? (
+          section as
+            CampaignSection
+        )
+      : 'overview'
+
+  const navigateToSection =
+    (
+      nextSection:
+        CampaignSection,
+    ) => {
+      navigate(
+        `/campaign/${campaignId}/${nextSection}`,
+      )
+    }
 
 
   /* =======================================================
@@ -900,6 +1024,79 @@ function CampaignPage({
   }, [
     campaignId,
     t.loadError,
+  ])
+
+  /* =======================================================
+     CARGAR ROL DEL USUARIO EN LA CAMPAÑA
+     ======================================================= */
+
+  useEffect(() => {
+    const loadCampaignRole =
+      async () => {
+        try {
+          const {
+            data: userData,
+            error: userError,
+          } =
+            await supabase.auth.getUser()
+
+          if (
+            userError ||
+            !userData.user
+          ) {
+            setCampaignRole(null)
+            return
+          }
+
+          const {
+            data: membership,
+            error: membershipError,
+          } =
+            await supabase
+              .from(
+                'campaign_members',
+              )
+              .select(
+                'role',
+              )
+              .eq(
+                'campaign_id',
+                campaignId,
+              )
+              .eq(
+                'user_id',
+                userData.user.id,
+              )
+              .maybeSingle()
+
+          if (membershipError) {
+            throw membershipError
+          }
+
+          if (
+            membership?.role === 'gm' ||
+            membership?.role === 'co_gm' ||
+            membership?.role === 'player'
+          ) {
+            setCampaignRole(
+              membership.role as CampaignRole,
+            )
+          } else {
+            setCampaignRole(null)
+          }
+        } catch (error) {
+          console.error(
+            'Error al cargar el rol de campaña:',
+            error,
+          )
+
+          setCampaignRole(null)
+        }
+      }
+
+    void loadCampaignRole()
+  }, [
+    campaignId,
   ])
 
   /* =======================================================
@@ -1382,142 +1579,146 @@ function CampaignPage({
               setSearchError('')
 
               try {
+                const canReadGmNotes =
+                  campaignRole === 'gm' ||
+                  campaignRole === 'co_gm'
+
                 const [
                   sessionsResult,
+                  timelineResult,
                   charactersResult,
                   npcsResult,
                   locationsResult,
                   questsResult,
                   itemsResult,
                   notesResult,
-                ] =
-                  await Promise.all([
-                    supabase
-                      .from('sessions')
-                      .select(
-                        `
+                  userNotesResult,
+                  gmNotesResult,
+                ] = await Promise.all([
+                  supabase
+                    .from('sessions')
+                    .select(`
+                      id,
+                      session_number,
+                      title,
+                      summary,
+                      notes
+                    `)
+                    .eq('campaign_id', campaignId),
+                  supabase
+                    .from('timeline_events')
+                    .select(`
+                      id,
+                      title,
+                      description,
+                      event_type,
+                      calendar_date,
+                      time_label
+                    `)
+                    .eq('campaign_id', campaignId),
+                  supabase
+                    .from('characters')
+                    .select(`
+                      id,
+                      name,
+                      player_name,
+                      class_or_archetype,
+                      ancestry,
+                      description,
+                      notes
+                    `)
+                    .eq('campaign_id', campaignId),
+                  supabase
+                    .from('npcs')
+                    .select(`
+                      id,
+                      name,
+                      role,
+                      faction,
+                      description,
+                      notes
+                    `)
+                    .eq('campaign_id', campaignId),
+                  supabase
+                    .from('locations')
+                    .select(`
+                      id,
+                      name,
+                      location_type,
+                      description,
+                      notes
+                    `)
+                    .eq('campaign_id', campaignId),
+                  supabase
+                    .from('quests')
+                    .select(`
+                      id,
+                      title,
+                      status,
+                      description,
+                      reward,
+                      notes
+                    `)
+                    .eq('campaign_id', campaignId),
+                  supabase
+                    .from('items')
+                    .select(`
+                      id,
+                      name,
+                      item_type,
+                      rarity,
+                      description,
+                      notes
+                    `)
+                    .eq('campaign_id', campaignId),
+                  supabase
+                    .from('notes')
+                    .select(`
+                      id,
+                      title,
+                      body,
+                      category
+                    `)
+                    .eq('campaign_id', campaignId),
+                  supabase
+                    .from('user_notes')
+                    .select(`
+                      id,
+                      title,
+                      content
+                    `)
+                    .eq('campaign_id', campaignId),
+                  canReadGmNotes
+                    ? supabase
+                        .from('gm_notes')
+                        .select(`
                           id,
-                          session_number,
                           title,
-                          summary,
-                          notes
-                        `,
-                      )
-                      .eq(
-                        'campaign_id',
-                        campaignId,
-                      ),
-                    supabase
-                      .from('characters')
-                      .select(
-                        `
-                          id,
-                          name,
-                          player_name,
-                          class_or_archetype,
-                          ancestry,
-                          description,
-                          notes
-                        `,
-                      )
-                      .eq(
-                        'campaign_id',
-                        campaignId,
-                      ),
-                    supabase
-                      .from('npcs')
-                      .select(
-                        `
-                          id,
-                          name,
-                          role,
-                          faction,
-                          description,
-                          notes
-                        `,
-                      )
-                      .eq(
-                        'campaign_id',
-                        campaignId,
-                      ),
-                    supabase
-                      .from('locations')
-                      .select(
-                        `
-                          id,
-                          name,
-                          location_type,
-                          description,
-                          notes
-                        `,
-                      )
-                      .eq(
-                        'campaign_id',
-                        campaignId,
-                      ),
-                    supabase
-                      .from('quests')
-                      .select(
-                        `
-                          id,
-                          title,
-                          status,
-                          description,
-                          reward,
-                          notes
-                        `,
-                      )
-                      .eq(
-                        'campaign_id',
-                        campaignId,
-                      ),
-                    supabase
-                      .from('items')
-                      .select(
-                        `
-                          id,
-                          name,
-                          item_type,
-                          rarity,
-                          description,
-                          notes
-                        `,
-                      )
-                      .eq(
-                        'campaign_id',
-                        campaignId,
-                      ),
-                    supabase
-                      .from('notes')
-                      .select(
-                        `
-                          id,
-                          title,
-                          body,
-                          category
-                        `,
-                      )
-                      .eq(
-                        'campaign_id',
-                        campaignId,
-                      ),
-                  ])
+                          content
+                        `)
+                        .eq('campaign_id', campaignId)
+                    : Promise.resolve({
+                        data: [],
+                        error: null,
+                      }),
+                ])
 
                 const results = [
                   sessionsResult,
+                  timelineResult,
                   charactersResult,
                   npcsResult,
                   locationsResult,
                   questsResult,
                   itemsResult,
                   notesResult,
+                  userNotesResult,
+                  gmNotesResult,
                 ]
 
                 const firstError =
                   results.find(
-                    (
-                      result,
-                    ) =>
+                    (result) =>
                       result.error,
                   )?.error
 
@@ -1537,8 +1738,7 @@ function CampaignPage({
 
                 for (
                   const session
-                  of sessionsResult.data ??
-                    []
+                  of sessionsResult.data ?? []
                 ) {
                   if (
                     matchesSearch(
@@ -1550,12 +1750,9 @@ function CampaignPage({
                     )
                   ) {
                     matches.push({
-                      id:
-                        session.id,
-                      section:
-                        'sessions',
-                      category:
-                        t.sessions,
+                      id: session.id,
+                      section: 'sessions',
+                      category: t.sessions,
                       title:
                         session.session_number
                           ? `${t.session} ${session.session_number}: ${session.title}`
@@ -1569,9 +1766,36 @@ function CampaignPage({
                 }
 
                 for (
+                  const timelineEvent
+                  of timelineResult.data ?? []
+                ) {
+                  if (
+                    matchesSearch(
+                      normalizedTerm,
+                      timelineEvent.title,
+                      timelineEvent.description,
+                      timelineEvent.event_type,
+                      timelineEvent.calendar_date,
+                      timelineEvent.time_label,
+                    )
+                  ) {
+                    matches.push({
+                      id: timelineEvent.id,
+                      section: 'timeline',
+                      category: t.timeline,
+                      title: timelineEvent.title,
+                      subtitle:
+                        timelineEvent.calendar_date ??
+                        timelineEvent.time_label ??
+                        timelineEvent.description ??
+                        '',
+                    })
+                  }
+                }
+
+                for (
                   const character
-                  of charactersResult.data ??
-                    []
+                  of charactersResult.data ?? []
                 ) {
                   if (
                     matchesSearch(
@@ -1585,29 +1809,23 @@ function CampaignPage({
                     )
                   ) {
                     matches.push({
-                      id:
-                        character.id,
-                      section:
-                        'characters',
-                      category:
-                        t.characters,
-                      title:
-                        character.name,
-                      subtitle:
-                        [
-                          character.class_or_archetype,
-                          character.player_name,
-                        ]
-                          .filter(Boolean)
-                          .join(' · '),
+                      id: character.id,
+                      section: 'characters',
+                      category: t.characters,
+                      title: character.name,
+                      subtitle: [
+                        character.class_or_archetype,
+                        character.player_name,
+                      ]
+                        .filter(Boolean)
+                        .join(' · '),
                     })
                   }
                 }
 
                 for (
                   const npc
-                  of npcsResult.data ??
-                    []
+                  of npcsResult.data ?? []
                 ) {
                   if (
                     matchesSearch(
@@ -1620,29 +1838,23 @@ function CampaignPage({
                     )
                   ) {
                     matches.push({
-                      id:
-                        npc.id,
-                      section:
-                        'npcs',
-                      category:
-                        t.npcs,
-                      title:
-                        npc.name,
-                      subtitle:
-                        [
-                          npc.role,
-                          npc.faction,
-                        ]
-                          .filter(Boolean)
-                          .join(' · '),
+                      id: npc.id,
+                      section: 'npcs',
+                      category: t.npcs,
+                      title: npc.name,
+                      subtitle: [
+                        npc.role,
+                        npc.faction,
+                      ]
+                        .filter(Boolean)
+                        .join(' · '),
                     })
                   }
                 }
 
                 for (
                   const location
-                  of locationsResult.data ??
-                    []
+                  of locationsResult.data ?? []
                 ) {
                   if (
                     matchesSearch(
@@ -1654,14 +1866,10 @@ function CampaignPage({
                     )
                   ) {
                     matches.push({
-                      id:
-                        location.id,
-                      section:
-                        'locations',
-                      category:
-                        t.locations,
-                      title:
-                        location.name,
+                      id: location.id,
+                      section: 'locations',
+                      category: t.locations,
+                      title: location.name,
                       subtitle:
                         location.location_type ??
                         location.description ??
@@ -1672,8 +1880,7 @@ function CampaignPage({
 
                 for (
                   const quest
-                  of questsResult.data ??
-                    []
+                  of questsResult.data ?? []
                 ) {
                   if (
                     matchesSearch(
@@ -1686,14 +1893,10 @@ function CampaignPage({
                     )
                   ) {
                     matches.push({
-                      id:
-                        quest.id,
-                      section:
-                        'quests',
-                      category:
-                        t.quests,
-                      title:
-                        quest.title,
+                      id: quest.id,
+                      section: 'quests',
+                      category: t.quests,
+                      title: quest.title,
                       subtitle:
                         quest.description ??
                         quest.reward ??
@@ -1704,8 +1907,7 @@ function CampaignPage({
 
                 for (
                   const item
-                  of itemsResult.data ??
-                    []
+                  of itemsResult.data ?? []
                 ) {
                   if (
                     matchesSearch(
@@ -1718,29 +1920,23 @@ function CampaignPage({
                     )
                   ) {
                     matches.push({
-                      id:
-                        item.id,
-                      section:
-                        'items',
-                      category:
-                        t.items,
-                      title:
-                        item.name,
-                      subtitle:
-                        [
-                          item.item_type,
-                          item.rarity,
-                        ]
-                          .filter(Boolean)
-                          .join(' · '),
+                      id: item.id,
+                      section: 'items',
+                      category: t.items,
+                      title: item.name,
+                      subtitle: [
+                        item.item_type,
+                        item.rarity,
+                      ]
+                        .filter(Boolean)
+                        .join(' · '),
                     })
                   }
                 }
 
                 for (
                   const note
-                  of notesResult.data ??
-                    []
+                  of notesResult.data ?? []
                 ) {
                   if (
                     matchesSearch(
@@ -1751,19 +1947,61 @@ function CampaignPage({
                     )
                   ) {
                     matches.push({
-                      id:
-                        note.id,
-                      section:
-                        'notes',
-                      category:
-                        t.notes,
-                      title:
-                        note.title,
+                      id: note.id,
+                      section: 'notes',
+                      category: t.notes,
+                      title: note.title,
                       subtitle:
                         note.category ??
                         note.body ??
                         '',
                     })
+                  }
+                }
+
+                for (
+                  const note
+                  of userNotesResult.data ?? []
+                ) {
+                  if (
+                    matchesSearch(
+                      normalizedTerm,
+                      note.title,
+                      note.content,
+                    )
+                  ) {
+                    matches.push({
+                      id: note.id,
+                      section: 'my-notes',
+                      category: t.myNotes,
+                      title: note.title,
+                      subtitle: note.content ?? '',
+                    })
+                  }
+                }
+
+                if (
+                  canReadGmNotes
+                ) {
+                  for (
+                    const note
+                    of gmNotesResult.data ?? []
+                  ) {
+                    if (
+                      matchesSearch(
+                        normalizedTerm,
+                        note.title,
+                        note.content,
+                      )
+                    ) {
+                      matches.push({
+                        id: note.id,
+                        section: 'gm-notes',
+                        category: t.gmNotes,
+                        title: note.title,
+                        subtitle: note.content ?? '',
+                      })
+                    }
                   }
                 }
 
@@ -1776,7 +2014,7 @@ function CampaignPage({
                 setSearchResults(
                   matches.slice(
                     0,
-                    30,
+                    40,
                   ),
                 )
               } catch (error) {
@@ -1798,9 +2036,7 @@ function CampaignPage({
                 if (
                   !cancelled
                 ) {
-                  setSearchLoading(
-                    false,
-                  )
+                  setSearchLoading(false)
                 }
               }
             }
@@ -1811,37 +2047,38 @@ function CampaignPage({
       )
 
     return () => {
-      cancelled =
-        true
+      cancelled = true
 
-      window.clearTimeout(
-        timer,
-      )
+      window.clearTimeout(timer)
     }
   }, [
     campaignId,
+    campaignRole,
     searchQuery,
     t.characters,
+    t.gmNotes,
     t.items,
     t.locations,
+    t.myNotes,
     t.notes,
     t.npcs,
     t.quests,
     t.searchError,
     t.session,
     t.sessions,
+    t.timeline,
   ])
 
   const openSearchResult =
     (
-      result:
-        SearchResult,
+      result: SearchResult,
     ) => {
-      setActiveSection(
+      navigateToSection(
         result.section,
       )
 
       setSearchOpen(false)
+      setSearchQuery('')
     }
 
   /* =======================================================
@@ -1972,6 +2209,28 @@ function CampaignPage({
 
     {
       id:
+        'timeline' as CampaignSection,
+
+      label:
+        t.timeline,
+
+      icon:
+        LuClock3,
+    },
+
+    {
+      id:
+        'relationships' as CampaignSection,
+
+      label:
+        t.relationships,
+
+      icon:
+        LuNetwork,
+    },
+
+    {
+      id:
         'characters' as CampaignSection,
 
       label:
@@ -2001,6 +2260,7 @@ function CampaignPage({
 
       icon:
         LuMap,
+  LuNetwork,
     },
 
     {
@@ -2027,6 +2287,17 @@ function CampaignPage({
 
     {
       id:
+        'members' as CampaignSection,
+
+      label:
+        t.members,
+
+      icon:
+        LuUsers,
+    },
+
+    {
+      id:
         'notes' as CampaignSection,
 
       label:
@@ -2035,6 +2306,34 @@ function CampaignPage({
       icon:
         LuNotebookTabs,
     },
+
+    {
+      id:
+        'my-notes' as CampaignSection,
+
+      label:
+        t.myNotes,
+
+      icon:
+        LuNotebookPen,
+    },
+
+    ...(
+      campaignRole === 'gm' ||
+      campaignRole === 'co_gm'
+        ? [
+          {
+            id:
+              'gm-notes' as CampaignSection,
+
+            label:
+              t.gmNotes,
+
+            icon:
+              LuLock,
+          },
+        ]
+      : []),
   ]
 
   /* =======================================================
@@ -2345,9 +2644,7 @@ function CampaignPage({
         string,
     ) => {
       const confirmed =
-        window.confirm(
-          t.deleteSessionConfirm,
-        )
+        await confirmAction({ message: t.deleteSessionConfirm, variant: 'danger' })
 
       if (!confirmed) {
         return
@@ -2606,7 +2903,7 @@ function CampaignPage({
                         : ''
                     }
                     onClick={() =>
-                      setActiveSection(
+                      navigateToSection(
                         item.id,
                       )
                     }
@@ -2655,8 +2952,19 @@ function CampaignPage({
 
             <div className="campaign-hero-banner-copy">
               <span>
-                {campaign.system ||
-                  t.notSpecified}
+                {[
+                  campaign.system ||
+                    t.notSpecified,
+                  campaignRole === 'gm'
+                    ? t.roleGm
+                    : campaignRole === 'co_gm'
+                      ? t.roleCoGm
+                      : campaignRole === 'player'
+                        ? t.rolePlayer
+                        : null,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
               </span>
 
               <h2>
@@ -3065,8 +3373,36 @@ function CampaignPage({
                 campaign.description
               }
               onNavigate={
-                setActiveSection
+                navigateToSection
               }
+            />
+          )}
+
+          {/* =============================================
+              TIMELINE
+              ============================================= */}
+
+          {activeSection ===
+            'timeline' && (
+            <TimelineSection
+              language={language}
+              campaignId={campaignId}
+              campaignRole={campaignRole}
+            />
+          )}
+
+
+          {/* =============================================
+              RELACIONES
+              ============================================= */}
+
+          {activeSection ===
+            'relationships' &&
+            campaignRole && (
+            <RelationshipsSection
+              language={language}
+              campaignId={campaignId}
+              campaignRole={campaignRole}
             />
           )}
 
@@ -3627,7 +3963,26 @@ function CampaignPage({
           )}
 
           {/* =============================================
-              NOTAS
+              MIEMBROS
+              ============================================= */}
+
+          {activeSection ===
+            'members' && (
+            <MembersSection
+              language={
+                language
+              }
+              campaignId={
+                campaignId
+              }
+              campaignRole={
+                campaignRole
+              }
+            />
+          )}
+
+          {/* =============================================
+              NOTAS COMPARTIDAS
               ============================================= */}
 
           {activeSection ===
@@ -3642,8 +3997,50 @@ function CampaignPage({
             />
           )}
 
+          {/* =============================================
+              MIS NOTAS
+              ============================================= */}
+
+          {activeSection ===
+            'my-notes' && (
+            <MyNotesSection
+              language={
+                language
+              }
+              campaignId={
+                campaignId
+              }
+            />
+          )}
+
+          {/* =============================================
+              NOTAS DEL GM
+              Visible para GM y Sub-GM
+              ============================================= */}
+
+          {activeSection ===
+            'gm-notes' &&
+            (
+              campaignRole === 'gm' ||
+              campaignRole === 'co_gm'
+            ) && (
+            <GmNotesSection
+              language={
+                language
+              }
+              campaignId={
+                campaignId
+              }
+            />
+          )}
+
         </main>
       </div>
+
+      <QuickCapture
+        language={language}
+        campaignId={campaignId}
+      />
     </div>
   )
 }

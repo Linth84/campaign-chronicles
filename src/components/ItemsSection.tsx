@@ -1,3 +1,4 @@
+import { useConfirm } from './ConfirmProvider'
 import {
   useEffect,
   useState,
@@ -147,6 +148,7 @@ function ItemsSection({
   language,
   campaignId,
 }: ItemsSectionProps) {
+  const confirmAction = useConfirm()
   const t =
     translations[language]
 
@@ -502,9 +504,7 @@ function ItemsSection({
         string,
     ) => {
       if (
-        !window.confirm(
-          t.deleteConfirm,
-        )
+        !(await confirmAction({ message: t.deleteConfirm, variant: 'danger' }))
       ) {
         return
       }

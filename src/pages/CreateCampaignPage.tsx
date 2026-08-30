@@ -12,6 +12,7 @@ import { supabase } from '../utils/supabase'
 import AppHeader from '../components/AppHeader'
 
 type Language = 'en' | 'es'
+type CampaignRole = 'gm' | 'player'
 
 interface CreateCampaignPageProps {
   language: Language
@@ -45,12 +46,19 @@ const translations = {
     requiredError: 'Campaign name is required.',
     genericError: 'We could not create the campaign. Please try again.',
     sessionError: 'Your session could not be found. Please sign in again.',
+    roleQuestion: 'Are you a GM or a player?',
+    roleHelp: 'Your role controls which campaign tools and private information you can access.',
+    roleGm: 'GM',
+    roleGmDescription: 'Manage the campaign and access private GM information.',
+    rolePlayer: 'Player',
+    rolePlayerDescription: 'Keep track of the campaign from a player perspective.',
+    roleRequired: 'Choose your role in this campaign.',
   },
   es: {
     eyebrow: 'Nueva campaña',
     title: 'Crear campaña',
     intro:
-      'Configurá la información básica de tu campaña. Después vas a poder agregar sesiones, NPCs, lugares, misiones y objetos.',
+      'Configura la información básica de tu campaña. Después podrás agregar sesiones, NPCs, lugares, misiones y objetos.',
     back: 'Volver',
     name: 'Nombre de la campaña',
     namePlaceholder: 'La maldición de Strahd',
@@ -66,9 +74,16 @@ const translations = {
     create: 'Crear campaña',
     creating: 'Creando campaña...',
     requiredError: 'El nombre de la campaña es obligatorio.',
-    genericError: 'No pudimos crear la campaña. Intentá nuevamente.',
+    genericError: 'No pudimos crear la campaña. Inténtalo nuevamente.',
     sessionError:
-      'No pudimos encontrar tu sesión. Volvé a iniciar sesión.',
+      'No pudimos encontrar tu sesión. Vuelve a iniciar sesión.',
+    roleQuestion: '¿Eres GM o jugador?',
+    roleHelp: 'Tu rol determina a qué herramientas e información privada de la campaña puedes acceder.',
+    roleGm: 'GM',
+    roleGmDescription: 'Gestiona la campaña y accede a la información privada del GM.',
+    rolePlayer: 'Jugador',
+    rolePlayerDescription: 'Lleva el registro de la campaña desde la perspectiva de un jugador.',
+    roleRequired: 'Elige tu rol en esta campaña.',
   },
 }
 
@@ -87,6 +102,7 @@ function CreateCampaignPage({
   const [partyName, setPartyName] = useState('')
   const [startDate, setStartDate] = useState('')
   const [description, setDescription] = useState('')
+  const [campaignRole, setCampaignRole] = useState<CampaignRole | null>(null)
 
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
@@ -98,6 +114,11 @@ function CreateCampaignPage({
 
     if (!name.trim()) {
       setErrorMessage(t.requiredError)
+      return
+    }
+
+    if (!campaignRole) {
+      setErrorMessage(t.roleRequired)
       return
     }
 
@@ -114,17 +135,44 @@ function CreateCampaignPage({
         return
       }
 
-      const { error } = await supabase.from('campaigns').insert({
-        owner_id: user.id,
-        name: name.trim(),
-        system: system.trim() || null,
-        party_name: partyName.trim() || null,
-        start_date: startDate || null,
-        description: description.trim() || null,
-      })
+      const {
+        data: campaign,
+        error: campaignError,
+      } = await supabase
+        .from('campaigns')
+        .insert({
+          owner_id: user.id,
+          name: name.trim(),
+          system: system.trim() || null,
+          party_name: partyName.trim() || null,
+          start_date: startDate || null,
+          description: description.trim() || null,
+        })
+        .select('id')
+        .single()
 
-      if (error) {
-        console.error('Error al crear la campaña:', error)
+      if (campaignError) {
+        console.error('Error al crear la campaña:', campaignError)
+        setErrorMessage(t.genericError)
+        return
+      }
+
+      const { error: memberError } = await supabase
+        .from('campaign_members')
+        .insert({
+          campaign_id: campaign.id,
+          user_id: user.id,
+          role: campaignRole,
+        })
+
+      if (memberError) {
+        console.error('Error al guardar el rol de campaña:', memberError)
+
+        await supabase
+          .from('campaigns')
+          .delete()
+          .eq('id', campaign.id)
+
         setErrorMessage(t.genericError)
         return
       }
@@ -314,6 +362,50 @@ function CreateCampaignPage({
                 />
               </div>
             </div>
+
+
+            <fieldset className="campaign-role-fieldset">
+              <legend>{t.roleQuestion}</legend>
+              <p className="campaign-role-help">{t.roleHelp}</p>
+
+              <div className="campaign-role-options">
+                <label className={`campaign-role-option ${campaignRole === 'gm' ? 'campaign-role-option-active' : ''}`}>
+                  <input
+                    type="radio"
+                    name="campaign-role"
+                    value="gm"
+                    checked={campaignRole === 'gm'}
+                    onChange={() => {
+                      setCampaignRole('gm')
+                      setErrorMessage('')
+                    }}
+                  />
+
+                  <span>
+                    <strong>{t.roleGm}</strong>
+                    <small>{t.roleGmDescription}</small>
+                  </span>
+                </label>
+
+                <label className={`campaign-role-option ${campaignRole === 'player' ? 'campaign-role-option-active' : ''}`}>
+                  <input
+                    type="radio"
+                    name="campaign-role"
+                    value="player"
+                    checked={campaignRole === 'player'}
+                    onChange={() => {
+                      setCampaignRole('player')
+                      setErrorMessage('')
+                    }}
+                  />
+
+                  <span>
+                    <strong>{t.rolePlayer}</strong>
+                    <small>{t.rolePlayerDescription}</small>
+                  </span>
+                </label>
+              </div>
+            </fieldset>
 
             <div className="create-campaign-field">
               <label htmlFor="campaign-description">

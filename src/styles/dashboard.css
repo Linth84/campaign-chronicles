@@ -1334,3 +1334,49 @@
     animation: none !important;
   }
 }
+/* =========================================================
+   ROL EN TARJETA DE CAMPAÑA
+   Añadir al final del CSS del Dashboard
+   ========================================================= */
+
+.campaign-card-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.campaign-role-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.7rem;
+  padding: 0.25rem 0.6rem;
+  border: 1px solid rgba(206, 164, 88, 0.34);
+  border-radius: 999px;
+  background: rgba(206, 164, 88, 0.08);
+  color: rgba(236, 204, 139, 0.94);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.campaign-role-badge-player {
+  border-color: rgba(196, 201, 211, 0.22);
+  background: rgba(196, 201, 211, 0.06);
+  color: rgba(218, 221, 228, 0.78);
+}
+
+@media (max-width: 520px) {
+  .campaign-card-identity {
+    gap: 0.5rem;
+  }
+
+  .campaign-role-badge {
+    min-height: 1.55rem;
+    padding: 0.22rem 0.5rem;
+    font-size: 0.66rem;
+  }
+}

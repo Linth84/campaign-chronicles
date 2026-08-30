@@ -1,3 +1,4 @@
+import { useConfirm } from './ConfirmProvider'
 import {
   useEffect,
   useState,
@@ -28,6 +29,10 @@ type Language =
   | 'en'
   | 'es'
 
+type CampaignRole =
+  | 'gm'
+  | 'player'
+
 interface NotesSectionProps {
   language: Language
   campaignId: string
@@ -40,6 +45,7 @@ interface CampaignNote {
   body: string | null
   category: string | null
   is_pinned: boolean
+  created_by: string | null
   created_at: string
 }
 
@@ -74,7 +80,7 @@ const translations = {
       'Notes',
 
     description:
-      'Keep clues, ideas, reminders and anything that does not belong somewhere else.',
+      'Keep shared campaign information here: clues, events, places, reminders and important details for the group.',
 
     newNote:
       'New Note',
@@ -122,10 +128,10 @@ const translations = {
       'Delete',
 
     noNotesTitle:
-      'No notes yet.',
+      'No shared notes yet.',
 
     noNotesText:
-      'Create a note for clues, lore, reminders or anything you want to remember.',
+      'Create a note to keep information that may be useful to everyone in the campaign.',
 
     untitled:
       'Untitled Note',
@@ -160,7 +166,7 @@ const translations = {
       'Notas',
 
     description:
-      'Guardá pistas, ideas, recordatorios y todo lo que no pertenezca a otra sección.',
+      'Guarda aquí información compartida de la campaña: pistas, sucesos, lugares, recordatorios y detalles importantes para el grupo.',
 
     newNote:
       'Nueva nota',
@@ -187,7 +193,7 @@ const translations = {
       'Contenido',
 
     bodyPlaceholder:
-      'Escribí tu nota acá...',
+      'Escribe tu nota aquí...',
 
     pinned:
       'Fijar esta nota',
@@ -208,10 +214,10 @@ const translations = {
       'Eliminar',
 
     noNotesTitle:
-      'Todavía no hay notas.',
+      'Todavía no hay notas compartidas.',
 
     noNotesText:
-      'Creá una nota para pistas, lore, recordatorios o cualquier cosa que quieras recordar.',
+      'Crea una nota para guardar información que pueda ser útil para todos los miembros de la campaña.',
 
     untitled:
       'Nota sin título',
@@ -232,7 +238,7 @@ const translations = {
       'No pudimos eliminar esta nota.',
 
     titleRequired:
-      'Escribí un título para la nota antes de guardarla.',
+      'Escribe un título para la nota antes de guardarla.',
 
     deleteConfirm:
       '¿Eliminar esta nota? Esta acción no se puede deshacer.',
@@ -247,6 +253,7 @@ function NotesSection({
   language,
   campaignId,
 }: NotesSectionProps) {
+  const confirmAction = useConfirm()
   const t =
     translations[
       language
@@ -300,6 +307,111 @@ function NotesSection({
   ] =
     useState('')
 
+  const [
+    currentUserId,
+    setCurrentUserId,
+  ] =
+    useState<string | null>(
+      null,
+    )
+
+  const [
+    campaignRole,
+    setCampaignRole,
+  ] =
+    useState<CampaignRole | null>(
+      null,
+    )
+
+  /* =======================================================
+     CARGAR USUARIO Y ROL EN LA CAMPAÑA
+     ======================================================= */
+
+  useEffect(() => {
+    const loadAccess =
+      async () => {
+        try {
+          const {
+            data: userData,
+            error: userError,
+          } =
+            await supabase.auth.getUser()
+
+          if (
+            userError ||
+            !userData.user
+          ) {
+            setCurrentUserId(
+              null,
+            )
+
+            setCampaignRole(
+              null,
+            )
+
+            return
+          }
+
+          setCurrentUserId(
+            userData.user.id,
+          )
+
+          const {
+            data: membership,
+            error: membershipError,
+          } =
+            await supabase
+              .from(
+                'campaign_members',
+              )
+              .select(
+                'role',
+              )
+              .eq(
+                'campaign_id',
+                campaignId,
+              )
+              .eq(
+                'user_id',
+                userData.user.id,
+              )
+              .maybeSingle()
+
+          if (membershipError) {
+            throw membershipError
+          }
+
+          if (
+            membership?.role ===
+              'gm' ||
+            membership?.role ===
+              'player'
+          ) {
+            setCampaignRole(
+              membership.role as CampaignRole,
+            )
+          } else {
+            setCampaignRole(
+              null,
+            )
+          }
+        } catch (error) {
+          console.error(
+            'Error al cargar permisos de notas compartidas:',
+            error,
+          )
+
+          setCampaignRole(
+            null,
+          )
+        }
+      }
+
+    void loadAccess()
+  }, [
+    campaignId,
+  ])
+
   /* =======================================================
      CARGAR NOTAS
      ======================================================= */
@@ -325,6 +437,7 @@ function NotesSection({
                   body,
                   category,
                   is_pinned,
+                  created_by,
                   created_at
                 `,
               )
@@ -527,6 +640,7 @@ function NotesSection({
                   body,
                   category,
                   is_pinned,
+                  created_by,
                   created_at
                 `,
               )
@@ -556,14 +670,34 @@ function NotesSection({
           )
         } else {
           const {
+            data: userData,
+            error: userError,
+          } =
+            await supabase.auth.getUser()
+
+          if (
+            userError ||
+            !userData.user
+          ) {
+            throw (
+              userError ||
+              new Error(
+                'Usuario no disponible.',
+              )
+            )
+          }
+
+          const {
             data,
             error,
           } =
             await supabase
               .from('notes')
-              .insert(
-                noteData,
-              )
+              .insert({
+                ...noteData,
+                created_by:
+                  userData.user.id,
+              })
               .select(
                 `
                   id,
@@ -572,6 +706,7 @@ function NotesSection({
                   body,
                   category,
                   is_pinned,
+                  created_by,
                   created_at
                 `,
               )
@@ -621,9 +756,7 @@ function NotesSection({
         string,
     ) => {
       const confirmed =
-        window.confirm(
-          t.deleteConfirm,
-        )
+        await confirmAction({ message: t.deleteConfirm, variant: 'danger' })
 
       if (!confirmed) {
         return
@@ -673,6 +806,27 @@ function NotesSection({
           t.deleteError,
         )
       }
+    }
+
+  /* =======================================================
+     PERMISOS DE EDICIÓN
+     ======================================================= */
+
+  const canManageNote =
+    (
+      note:
+        CampaignNote,
+    ) => {
+      return (
+        campaignRole ===
+          'gm' ||
+        (
+          currentUserId !==
+            null &&
+          note.created_by ===
+            currentUserId
+        )
+      )
     }
 
   /* =======================================================
@@ -1004,42 +1158,46 @@ function NotesSection({
                       )}
                     </div>
 
-                    <div className="note-card-actions">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          openEditNote(
-                            note,
-                          )
-                        }
-                        title={
-                          t.edit
-                        }
-                        aria-label={
-                          t.edit
-                        }
-                      >
-                        <LuFilePenLine />
-                      </button>
+                    {canManageNote(
+                      note,
+                    ) && (
+                      <div className="note-card-actions">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            openEditNote(
+                              note,
+                            )
+                          }
+                          title={
+                            t.edit
+                          }
+                          aria-label={
+                            t.edit
+                          }
+                        >
+                          <LuFilePenLine />
+                        </button>
 
-                      <button
-                        type="button"
-                        className="note-delete-button"
-                        onClick={() =>
-                          void handleDelete(
-                            note.id,
-                          )
-                        }
-                        title={
-                          t.delete
-                        }
-                        aria-label={
-                          t.delete
-                        }
-                      >
-                        <LuTrash2 />
-                      </button>
-                    </div>
+                        <button
+                          type="button"
+                          className="note-delete-button"
+                          onClick={() =>
+                            void handleDelete(
+                              note.id,
+                            )
+                          }
+                          title={
+                            t.delete
+                          }
+                          aria-label={
+                            t.delete
+                          }
+                        >
+                          <LuTrash2 />
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   <h3>

@@ -1,5 +1,7 @@
+import { useConfirm } from './ConfirmProvider'
 import {
   useEffect,
+  useMemo,
   useState,
 } from 'react'
 
@@ -9,8 +11,10 @@ import type {
 
 import {
   LuFilePenLine,
+  LuMapPin,
   LuPlus,
   LuSave,
+  LuSearch,
   LuTrash2,
   LuUsers,
   LuX,
@@ -32,6 +36,11 @@ type NpcStatus =
   | 'hostile'
   | 'friendly'
 
+type NpcRelationship =
+  | 'ally'
+  | 'neutral'
+  | 'enemy'
+
 interface NpcsSectionProps {
   language: Language
   campaignId: string
@@ -43,6 +52,8 @@ interface CampaignNpc {
   name: string
   role: string | null
   faction: string | null
+  location: string | null
+  relationship: NpcRelationship | null
   status: NpcStatus
   description: string | null
   notes: string | null
@@ -53,6 +64,8 @@ interface NpcForm {
   name: string
   role: string
   faction: string
+  location: string
+  relationship: NpcRelationship
   status: NpcStatus
   description: string
   notes: string
@@ -62,6 +75,8 @@ const emptyNpcForm: NpcForm = {
   name: '',
   role: '',
   faction: '',
+  location: '',
+  relationship: 'neutral',
   status: 'unknown',
   description: '',
   notes: '',
@@ -72,7 +87,7 @@ const translations = {
     eyebrow: 'People of the World',
     title: 'NPCs',
     description:
-      'Keep track of allies, enemies, contacts and recurring faces.',
+      'Organize allies, enemies, contacts and recurring faces by location.',
     newNpc: 'New NPC',
     createNpc: 'Create NPC',
     editNpc: 'Edit NPC',
@@ -85,9 +100,13 @@ const translations = {
     noEntriesTitle: 'No NPCs recorded yet.',
     noEntriesText:
       'Add the first NPC your party meets.',
+    noMatchesTitle:
+      'No NPCs match these filters.',
     name: 'Name',
     role: 'Role',
     faction: 'Faction',
+    location: 'Location',
+    relationship: 'Relationship',
     status: 'Status',
     descriptionLabel: 'Description',
     notes: 'Notes',
@@ -111,13 +130,23 @@ const translations = {
     missing: 'Missing',
     hostile: 'Hostile',
     friendly: 'Friendly',
+    ally: 'Ally',
+    neutral: 'Neutral',
+    enemy: 'Enemy',
+    filters: 'Search and filters',
+    search: 'Search NPCs...',
+    allLocations: 'All locations',
+    allRelationships: 'All relationships',
+    allFactions: 'All factions',
+    allStatuses: 'All statuses',
+    noLocation: 'Unassigned location',
   },
 
   es: {
     eyebrow: 'Personas del mundo',
     title: 'NPCs',
     description:
-      'Registrá aliados, enemigos, contactos y personajes recurrentes.',
+      'Organiza aliados, enemigos, contactos y personajes recurrentes por ubicación.',
     newNpc: 'Nuevo NPC',
     createNpc: 'Crear NPC',
     editNpc: 'Editar NPC',
@@ -129,15 +158,19 @@ const translations = {
     loading: 'Cargando NPCs...',
     noEntriesTitle: 'Todavía no hay NPCs registrados.',
     noEntriesText:
-      'Agregá el primer NPC que encuentre el grupo.',
+      'Agrega el primer NPC que encuentre el grupo.',
+    noMatchesTitle:
+      'No hay NPCs que coincidan con estos filtros.',
     name: 'Nombre',
     role: 'Rol',
     faction: 'Facción',
+    location: 'Ubicación',
+    relationship: 'Relación',
     status: 'Estado',
     descriptionLabel: 'Descripción',
     notes: 'Notas',
     nameRequired:
-      'Escribí un nombre para el NPC antes de guardarlo.',
+      'Escribe un nombre para el NPC antes de guardarlo.',
     loadError:
       'No pudimos cargar los NPCs.',
     saveError:
@@ -156,6 +189,16 @@ const translations = {
     missing: 'Desaparecido',
     hostile: 'Hostil',
     friendly: 'Amistoso',
+    ally: 'Aliado',
+    neutral: 'Neutral',
+    enemy: 'Enemigo',
+    filters: 'Búsqueda y filtros',
+    search: 'Buscar NPCs...',
+    allLocations: 'Todas las ubicaciones',
+    allRelationships: 'Todas las relaciones',
+    allFactions: 'Todas las facciones',
+    allStatuses: 'Todos los estados',
+    noLocation: 'Sin ubicación',
   },
 }
 
@@ -163,121 +206,123 @@ function NpcsSection({
   language,
   campaignId,
 }: NpcsSectionProps) {
-  const t =
-    translations[language]
+  const confirmAction = useConfirm()
+  const t = translations[language]
 
-  const [
-    npcs,
-    setNpcs,
-  ] =
-    useState<CampaignNpc[]>(
-      [],
-    )
+  const [npcs, setNpcs] =
+    useState<CampaignNpc[]>([])
 
-  const [
-    loading,
-    setLoading,
-  ] =
+  const [loading, setLoading] =
     useState(true)
 
-  const [
-    editorOpen,
-    setEditorOpen,
-  ] =
+  const [editorOpen, setEditorOpen] =
     useState(false)
 
-  const [
-    editingId,
-    setEditingId,
-  ] =
-    useState<string | null>(
-      null,
-    )
+  const [editingId, setEditingId] =
+    useState<string | null>(null)
 
-  const [
-    form,
-    setForm,
-  ] =
+  const [form, setForm] =
     useState<NpcForm>({
       ...emptyNpcForm,
     })
 
-  const [
-    saving,
-    setSaving,
-  ] =
+  const [saving, setSaving] =
     useState(false)
 
   const [
     errorMessage,
     setErrorMessage,
-  ] =
-    useState('')
+  ] = useState('')
 
   const [
     successMessage,
     setSuccessMessage,
-  ] =
-    useState('')
+  ] = useState('')
+
+  const [
+    searchQuery,
+    setSearchQuery,
+  ] = useState('')
+
+  const [
+    locationFilter,
+    setLocationFilter,
+  ] = useState('')
+
+  const [
+    relationshipFilter,
+    setRelationshipFilter,
+  ] = useState('')
+
+  const [
+    factionFilter,
+    setFactionFilter,
+  ] = useState('')
+
+  const [
+    statusFilter,
+    setStatusFilter,
+  ] = useState('')
 
   useEffect(() => {
-    const loadNpcs =
-      async () => {
-        setLoading(true)
-        setErrorMessage('')
+    const loadNpcs = async () => {
+      setLoading(true)
+      setErrorMessage('')
 
-        try {
-          const {
-            data,
-            error,
-          } =
-            await supabase
-              .from('npcs')
-              .select(
-                `
-                  id,
-                  campaign_id,
-                  name,
-                  role,
-                  faction,
-                  status,
-                  description,
-                  notes,
-                  created_at
-                `,
-              )
-              .eq(
-                'campaign_id',
-                campaignId,
-              )
-              .order(
-                'name',
-                {
-                  ascending: true,
-                },
-              )
+      try {
+        const {
+          data,
+          error,
+        } =
+          await supabase
+            .from('npcs')
+            .select(
+              `
+                id,
+                campaign_id,
+                name,
+                role,
+                faction,
+                location,
+                relationship,
+                status,
+                description,
+                notes,
+                created_at
+              `,
+            )
+            .eq(
+              'campaign_id',
+              campaignId,
+            )
+            .order(
+              'name',
+              {
+                ascending: true,
+              },
+            )
 
-          if (error) {
-            throw error
-          }
-
-          setNpcs(
-            (data ??
-              []) as CampaignNpc[],
-          )
-        } catch (error) {
-          console.error(
-            'Error al cargar NPCs:',
-            error,
-          )
-
-          setErrorMessage(
-            t.loadError,
-          )
-        } finally {
-          setLoading(false)
+        if (error) {
+          throw error
         }
+
+        setNpcs(
+          (data ??
+            []) as CampaignNpc[],
+        )
+      } catch (error) {
+        console.error(
+          'Error al cargar NPCs:',
+          error,
+        )
+
+        setErrorMessage(
+          t.loadError,
+        )
+      } finally {
+        setLoading(false)
       }
+    }
 
     void loadNpcs()
   }, [
@@ -285,59 +330,267 @@ function NpcsSection({
     t.loadError,
   ])
 
-  const openNew =
-    () => {
-      setEditingId(null)
-      setForm({
-        ...emptyNpcForm,
-      })
-      setErrorMessage('')
-      setSuccessMessage('')
-      setEditorOpen(true)
-    }
+  const locations =
+    useMemo(
+      () =>
+        Array.from(
+          new Set(
+            npcs
+              .map(
+                (npc) =>
+                  npc.location?.trim(),
+              )
+              .filter(
+                (
+                  value,
+                ): value is string =>
+                  Boolean(value),
+              ),
+          ),
+        ).sort(
+          (
+            first,
+            second,
+          ) =>
+            first.localeCompare(
+              second,
+            ),
+        ),
+      [
+        npcs,
+      ],
+    )
 
-  const openEdit =
-    (
-      npc:
-        CampaignNpc,
-    ) => {
-      setEditingId(
-        npc.id,
-      )
+  const factions =
+    useMemo(
+      () =>
+        Array.from(
+          new Set(
+            npcs
+              .map(
+                (npc) =>
+                  npc.faction?.trim(),
+              )
+              .filter(
+                (
+                  value,
+                ): value is string =>
+                  Boolean(value),
+              ),
+          ),
+        ).sort(
+          (
+            first,
+            second,
+          ) =>
+            first.localeCompare(
+              second,
+            ),
+        ),
+      [
+        npcs,
+      ],
+    )
 
-      setForm({
-        name:
-          npc.name,
-        role:
-          npc.role ??
-          '',
-        faction:
-          npc.faction ??
-          '',
-        status:
-          npc.status,
-        description:
-          npc.description ??
-          '',
-        notes:
-          npc.notes ??
-          '',
-      })
+  const filteredNpcs =
+    useMemo(
+      () => {
+        const normalizedSearch =
+          searchQuery
+            .trim()
+            .toLocaleLowerCase()
 
-      setErrorMessage('')
-      setSuccessMessage('')
-      setEditorOpen(true)
-    }
+        return npcs.filter(
+          (npc) => {
+            const matchesSearch =
+              !normalizedSearch ||
+              [
+                npc.name,
+                npc.role,
+                npc.faction,
+                npc.location,
+                npc.description,
+                npc.notes,
+              ]
+                .filter(Boolean)
+                .some(
+                  (value) =>
+                    String(value)
+                      .toLocaleLowerCase()
+                      .includes(
+                        normalizedSearch,
+                      ),
+                )
 
-  const closeEditor =
-    () => {
-      setEditorOpen(false)
-      setEditingId(null)
-      setForm({
-        ...emptyNpcForm,
-      })
-      setErrorMessage('')
-    }
+            const matchesLocation =
+              !locationFilter ||
+              (npc.location ??
+                '') ===
+                locationFilter
+
+            const matchesRelationship =
+              !relationshipFilter ||
+              (npc.relationship ??
+                'neutral') ===
+                relationshipFilter
+
+            const matchesFaction =
+              !factionFilter ||
+              (npc.faction ??
+                '') ===
+                factionFilter
+
+            const matchesStatus =
+              !statusFilter ||
+              npc.status ===
+                statusFilter
+
+            return (
+              matchesSearch &&
+              matchesLocation &&
+              matchesRelationship &&
+              matchesFaction &&
+              matchesStatus
+            )
+          },
+        )
+      },
+      [
+        npcs,
+        searchQuery,
+        locationFilter,
+        relationshipFilter,
+        factionFilter,
+        statusFilter,
+      ],
+    )
+
+  const groupedNpcs =
+    useMemo(
+      () => {
+        const groups =
+          new Map<
+            string,
+            Map<
+              NpcRelationship,
+              CampaignNpc[]
+            >
+          >()
+
+        filteredNpcs.forEach(
+          (npc) => {
+            const location =
+              npc.location?.trim() ||
+              t.noLocation
+
+            const relationship =
+              npc.relationship ??
+              'neutral'
+
+            if (
+              !groups.has(location)
+            ) {
+              groups.set(
+                location,
+                new Map(),
+              )
+            }
+
+            const relationGroups =
+              groups.get(location)!
+
+            if (
+              !relationGroups.has(
+                relationship,
+              )
+            ) {
+              relationGroups.set(
+                relationship,
+                [],
+              )
+            }
+
+            relationGroups
+              .get(
+                relationship,
+              )!
+              .push(npc)
+          },
+        )
+
+        return Array.from(
+          groups.entries(),
+        ).sort(
+          (
+            [first],
+            [second],
+          ) =>
+            first.localeCompare(
+              second,
+            ),
+        )
+      },
+      [
+        filteredNpcs,
+        t.noLocation,
+      ],
+    )
+
+  const openNew = () => {
+    setEditingId(null)
+    setForm({
+      ...emptyNpcForm,
+    })
+    setErrorMessage('')
+    setSuccessMessage('')
+    setEditorOpen(true)
+  }
+
+  const openEdit = (
+    npc: CampaignNpc,
+  ) => {
+    setEditingId(
+      npc.id,
+    )
+
+    setForm({
+      name:
+        npc.name,
+      role:
+        npc.role ??
+        '',
+      faction:
+        npc.faction ??
+        '',
+      location:
+        npc.location ??
+        '',
+      relationship:
+        npc.relationship ??
+        'neutral',
+      status:
+        npc.status,
+      description:
+        npc.description ??
+        '',
+      notes:
+        npc.notes ??
+        '',
+    })
+
+    setErrorMessage('')
+    setSuccessMessage('')
+    setEditorOpen(true)
+  }
+
+  const closeEditor = () => {
+    setEditorOpen(false)
+    setEditingId(null)
+    setForm({
+      ...emptyNpcForm,
+    })
+    setErrorMessage('')
+  }
 
   const handleSave =
     async (
@@ -371,6 +624,11 @@ function NpcsSection({
         faction:
           form.faction.trim() ||
           null,
+        location:
+          form.location.trim() ||
+          null,
+        relationship:
+          form.relationship,
         status:
           form.status,
         description:
@@ -408,17 +666,15 @@ function NpcsSection({
           }
 
           setNpcs(
-            (
-              current,
-            ) =>
+            (current) =>
               current
                 .map(
-                  (
-                    npc,
-                  ) =>
+                  (npc) =>
                     npc.id ===
                     editingId
-                      ? (data as CampaignNpc)
+                      ? (
+                          data as CampaignNpc
+                        )
                       : npc,
                 )
                 .sort(
@@ -447,9 +703,7 @@ function NpcsSection({
           }
 
           setNpcs(
-            (
-              current,
-            ) =>
+            (current) =>
               [
                 ...current,
                 data as CampaignNpc,
@@ -488,9 +742,7 @@ function NpcsSection({
         string,
     ) => {
       if (
-        !window.confirm(
-          t.deleteConfirm,
-        )
+        !(await confirmAction({ message: t.deleteConfirm, variant: 'danger' }))
       ) {
         return
       }
@@ -519,13 +771,9 @@ function NpcsSection({
         }
 
         setNpcs(
-          (
-            current,
-          ) =>
+          (current) =>
             current.filter(
-              (
-                npc,
-              ) =>
+              (npc) =>
                 npc.id !==
                 npcId,
             ),
@@ -545,12 +793,8 @@ function NpcsSection({
   return (
     <section className="campaign-sessions">
       <SectionHeader
-        eyebrow={
-          t.eyebrow
-        }
-        title={
-          t.title
-        }
+        eyebrow={t.eyebrow}
+        title={t.title}
         description={
           t.description
         }
@@ -559,8 +803,7 @@ function NpcsSection({
         }
         showButton={
           !editorOpen &&
-          npcs.length >
-            0
+          npcs.length > 0
         }
         onNew={
           openNew
@@ -611,22 +854,13 @@ function NpcsSection({
 
           <div className="session-editor-grid">
             <TextField
-              label={
-                t.name
-              }
-              value={
-                form.name
-              }
-              onChange={(
-                value,
-              ) =>
+              label={t.name}
+              value={form.name}
+              onChange={(value) =>
                 setForm(
-                  (
-                    current,
-                  ) => ({
+                  (current) => ({
                     ...current,
-                    name:
-                      value,
+                    name: value,
                   }),
                 )
               }
@@ -634,21 +868,28 @@ function NpcsSection({
             />
 
             <TextField
-              label={
-                t.role
-              }
-              value={
-                form.role
-              }
-              onChange={(
-                value,
-              ) =>
+              label={t.role}
+              value={form.role}
+              onChange={(value) =>
                 setForm(
-                  (
-                    current,
-                  ) => ({
+                  (current) => ({
                     ...current,
-                    role:
+                    role: value,
+                  }),
+                )
+              }
+            />
+
+            <TextField
+              label={t.location}
+              value={
+                form.location
+              }
+              onChange={(value) =>
+                setForm(
+                  (current) => ({
+                    ...current,
+                    location:
                       value,
                   }),
                 )
@@ -656,19 +897,13 @@ function NpcsSection({
             />
 
             <TextField
-              label={
-                t.faction
-              }
+              label={t.faction}
               value={
                 form.faction
               }
-              onChange={(
-                value,
-              ) =>
+              onChange={(value) =>
                 setForm(
-                  (
-                    current,
-                  ) => ({
+                  (current) => ({
                     ...current,
                     faction:
                       value,
@@ -676,6 +911,47 @@ function NpcsSection({
                 )
               }
             />
+
+            <label>
+              <span>
+                {t.relationship}
+              </span>
+
+              <select
+                value={
+                  form.relationship
+                }
+                onChange={(
+                  event,
+                ) =>
+                  setForm(
+                    (current) => ({
+                      ...current,
+                      relationship:
+                        event.target
+                          .value as NpcRelationship,
+                    }),
+                  )
+                }
+              >
+                {(
+                  [
+                    'ally',
+                    'neutral',
+                    'enemy',
+                  ] as NpcRelationship[]
+                ).map(
+                  (value) => (
+                    <option
+                      key={value}
+                      value={value}
+                    >
+                      {t[value]}
+                    </option>
+                  ),
+                )}
+              </select>
+            </label>
 
             <label>
               <span>
@@ -690,12 +966,11 @@ function NpcsSection({
                   event,
                 ) =>
                   setForm(
-                    (
-                      current,
-                    ) => ({
+                    (current) => ({
                       ...current,
                       status:
-                        event.target.value as NpcStatus,
+                        event.target
+                          .value as NpcStatus,
                     }),
                   )
                 }
@@ -710,20 +985,12 @@ function NpcsSection({
                     'friendly',
                   ] as NpcStatus[]
                 ).map(
-                  (
-                    value,
-                  ) => (
+                  (value) => (
                     <option
-                      key={
-                        value
-                      }
-                      value={
-                        value
-                      }
+                      key={value}
+                      value={value}
                     >
-                      {
-                        t[value]
-                      }
+                      {t[value]}
                     </option>
                   ),
                 )}
@@ -737,13 +1004,9 @@ function NpcsSection({
               value={
                 form.description
               }
-              onChange={(
-                value,
-              ) =>
+              onChange={(value) =>
                 setForm(
-                  (
-                    current,
-                  ) => ({
+                  (current) => ({
                     ...current,
                     description:
                       value,
@@ -753,22 +1016,15 @@ function NpcsSection({
             />
 
             <AreaField
-              label={
-                t.notes
-              }
+              label={t.notes}
               value={
                 form.notes
               }
-              onChange={(
-                value,
-              ) =>
+              onChange={(value) =>
                 setForm(
-                  (
-                    current,
-                  ) => ({
+                  (current) => ({
                     ...current,
-                    notes:
-                      value,
+                    notes: value,
                   }),
                 )
               }
@@ -784,9 +1040,7 @@ function NpcsSection({
                 ? t.saving
                 : t.saveNpc
             }
-            saving={
-              saving
-            }
+            saving={saving}
             onCancel={
               closeEditor
             }
@@ -795,18 +1049,211 @@ function NpcsSection({
       )}
 
       {!editorOpen &&
+        !loading &&
+        npcs.length > 0 && (
+        <div className="session-editor">
+          <div className="session-editor-heading">
+            <div>
+              <p>
+                {t.filters}
+              </p>
+
+              <h3>
+                {t.title}
+              </h3>
+            </div>
+
+            <LuSearch />
+          </div>
+
+          <div className="session-editor-grid">
+            <label>
+              <span>
+                {t.search}
+              </span>
+
+              <input
+                type="search"
+                value={
+                  searchQuery
+                }
+                placeholder={
+                  t.search
+                }
+                onChange={(
+                  event,
+                ) =>
+                  setSearchQuery(
+                    event.target.value,
+                  )
+                }
+              />
+            </label>
+
+            <label>
+              <span>
+                {t.location}
+              </span>
+
+              <select
+                value={
+                  locationFilter
+                }
+                onChange={(
+                  event,
+                ) =>
+                  setLocationFilter(
+                    event.target.value,
+                  )
+                }
+              >
+                <option value="">
+                  {t.allLocations}
+                </option>
+
+                {locations.map(
+                  (location) => (
+                    <option
+                      key={
+                        location
+                      }
+                      value={
+                        location
+                      }
+                    >
+                      {location}
+                    </option>
+                  ),
+                )}
+              </select>
+            </label>
+
+            <label>
+              <span>
+                {t.relationship}
+              </span>
+
+              <select
+                value={
+                  relationshipFilter
+                }
+                onChange={(
+                  event,
+                ) =>
+                  setRelationshipFilter(
+                    event.target.value,
+                  )
+                }
+              >
+                <option value="">
+                  {t.allRelationships}
+                </option>
+                <option value="ally">
+                  {t.ally}
+                </option>
+                <option value="neutral">
+                  {t.neutral}
+                </option>
+                <option value="enemy">
+                  {t.enemy}
+                </option>
+              </select>
+            </label>
+
+            <label>
+              <span>
+                {t.faction}
+              </span>
+
+              <select
+                value={
+                  factionFilter
+                }
+                onChange={(
+                  event,
+                ) =>
+                  setFactionFilter(
+                    event.target.value,
+                  )
+                }
+              >
+                <option value="">
+                  {t.allFactions}
+                </option>
+
+                {factions.map(
+                  (faction) => (
+                    <option
+                      key={
+                        faction
+                      }
+                      value={
+                        faction
+                      }
+                    >
+                      {faction}
+                    </option>
+                  ),
+                )}
+              </select>
+            </label>
+
+            <label>
+              <span>
+                {t.status}
+              </span>
+
+              <select
+                value={
+                  statusFilter
+                }
+                onChange={(
+                  event,
+                ) =>
+                  setStatusFilter(
+                    event.target.value,
+                  )
+                }
+              >
+                <option value="">
+                  {t.allStatuses}
+                </option>
+
+                {(
+                  [
+                    'unknown',
+                    'alive',
+                    'dead',
+                    'missing',
+                    'hostile',
+                    'friendly',
+                  ] as NpcStatus[]
+                ).map(
+                  (value) => (
+                    <option
+                      key={value}
+                      value={value}
+                    >
+                      {t[value]}
+                    </option>
+                  ),
+                )}
+              </select>
+            </label>
+          </div>
+        </div>
+      )}
+
+      {!editorOpen &&
         loading && (
         <Loading
-          text={
-            t.loading
-          }
+          text={t.loading}
         />
       )}
 
       {!editorOpen &&
         !loading &&
-        npcs.length ===
-          0 && (
+        npcs.length === 0 && (
         <EmptyState
           title={
             t.noEntriesTitle
@@ -817,79 +1264,159 @@ function NpcsSection({
           buttonLabel={
             t.newNpc
           }
-          onNew={
-            openNew
-          }
+          onNew={openNew}
         />
       )}
 
       {!editorOpen &&
         !loading &&
-        npcs.length >
+        npcs.length > 0 &&
+        filteredNpcs.length ===
           0 && (
-        <div className="sessions-list">
-          {npcs.map(
-            (
-              npc,
-            ) => (
-              <article
-                className="session-card"
-                key={
-                  npc.id
-                }
-              >
-                <CardActions
-                  onEdit={() =>
-                    openEdit(
-                      npc,
-                    )
-                  }
-                  onDelete={() =>
-                    void handleDelete(
-                      npc.id,
-                    )
-                  }
-                  editLabel={
-                    t.edit
-                  }
-                  deleteLabel={
-                    t.delete
-                  }
-                />
-
-                <h3>
-                  {npc.name}
-                </h3>
-
-                <p>
-                  {[
-                    npc.role,
-                    npc.faction,
-                    t[npc.status],
-                  ]
-                    .filter(Boolean)
-                    .join(' · ')}
-                </p>
-
-                <p>
-                  {npc.description ||
-                    t.noDescription}
-                </p>
-
-                {npc.notes && (
-                  <div className="session-card-notes">
-                    <LuUsers />
-
-                    <span>
-                      {npc.notes}
-                    </span>
-                  </div>
-                )}
-              </article>
-            ),
-          )}
+        <div className="sessions-empty">
+          <LuSearch />
+          <h3>
+            {t.noMatchesTitle}
+          </h3>
         </div>
       )}
+
+      {!editorOpen &&
+        !loading &&
+        groupedNpcs.map(
+          ([
+            location,
+            relationGroups,
+          ]) => (
+            <section
+              key={location}
+            >
+              <div className="campaign-sessions-header">
+                <div>
+                  <p className="campaign-sessions-eyebrow">
+                    {t.location}
+                  </p>
+
+                  <h3>
+                    <LuMapPin />
+                    {' '}
+                    {location}
+                  </h3>
+                </div>
+              </div>
+
+              {(
+                [
+                  'ally',
+                  'neutral',
+                  'enemy',
+                ] as NpcRelationship[]
+              ).map(
+                (
+                  relationship,
+                ) => {
+                  const entries =
+                    relationGroups.get(
+                      relationship,
+                    ) ?? []
+
+                  if (
+                    entries.length ===
+                    0
+                  ) {
+                    return null
+                  }
+
+                  return (
+                    <div
+                      key={
+                        relationship
+                      }
+                    >
+                      <p className="campaign-sessions-eyebrow">
+                        {
+                          t[
+                            relationship
+                          ]
+                        }
+                      </p>
+
+                      <div className="sessions-list">
+                        {entries
+                          .slice()
+                          .sort(
+                            sortByName,
+                          )
+                          .map(
+                            (npc) => (
+                              <article
+                                className="session-card"
+                                key={
+                                  npc.id
+                                }
+                              >
+                                <CardActions
+                                  onEdit={() =>
+                                    openEdit(
+                                      npc,
+                                    )
+                                  }
+                                  onDelete={() =>
+                                    void handleDelete(
+                                      npc.id,
+                                    )
+                                  }
+                                  editLabel={
+                                    t.edit
+                                  }
+                                  deleteLabel={
+                                    t.delete
+                                  }
+                                />
+
+                                <h3>
+                                  {npc.name}
+                                </h3>
+
+                                <p>
+                                  {[
+                                    npc.role,
+                                    npc.faction,
+                                    t[
+                                      npc.status
+                                    ],
+                                  ]
+                                    .filter(Boolean)
+                                    .join(' · ')}
+                                </p>
+
+                                <p>
+                                  {npc.description ||
+                                    t.noDescription}
+                                </p>
+
+                                {npc.notes && (
+                                  <div className="session-card-notes">
+                                    <LuUsers />
+
+                                    <span>
+                                      {
+                                        npc.notes
+                                      }
+                                    </span>
+                                  </div>
+                                )}
+                              </article>
+                            ),
+                          )}
+                      </div>
+                    </div>
+                  )
+                },
+              )}
+            </section>
+          ),
+        )}
     </section>
   )
 }

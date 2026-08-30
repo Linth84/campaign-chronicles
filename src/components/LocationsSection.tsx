@@ -1,3 +1,4 @@
+import { useConfirm } from './ConfirmProvider'
 import {
   useEffect,
   useState,
@@ -133,6 +134,7 @@ function LocationsSection({
   language,
   campaignId,
 }: LocationsSectionProps) {
+  const confirmAction = useConfirm()
   const t =
     translations[language]
 
@@ -439,9 +441,7 @@ function LocationsSection({
         string,
     ) => {
       if (
-        !window.confirm(
-          t.deleteConfirm,
-        )
+        !(await confirmAction({ message: t.deleteConfirm, variant: 'danger' }))
       ) {
         return
       }

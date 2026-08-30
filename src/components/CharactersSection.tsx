@@ -1,3 +1,4 @@
+import { useConfirm } from './ConfirmProvider'
 import {
   useEffect,
   useState,
@@ -8,9 +9,12 @@ import type {
 } from 'react'
 
 import {
+  LuBackpack,
   LuFilePenLine,
+  LuHeartPulse,
   LuPlus,
   LuSave,
+  LuShield,
   LuTrash2,
   LuUserRound,
   LuUsers,
@@ -32,6 +36,10 @@ type CharacterStatus =
   | 'dead'
   | 'retired'
 
+type CampaignRole =
+  | 'gm'
+  | 'player'
+
 interface CharactersSectionProps {
   language: Language
   campaignId: string
@@ -47,6 +55,12 @@ interface CampaignCharacter {
   status: CharacterStatus
   description: string | null
   notes: string | null
+  level: number | null
+  current_hp: number | null
+  max_hp: number | null
+  armor_class: number | null
+  notable_gear: string | null
+  image_path: string | null
   created_at: string
 }
 
@@ -55,8 +69,14 @@ interface CharacterForm {
   playerName: string
   classOrArchetype: string
   ancestry: string
+  level: string
+  currentHp: string
+  maxHp: string
+  armorClass: string
   status: CharacterStatus
   description: string
+  notableGear: string
+  gmNotes: string
   notes: string
 }
 
@@ -65,8 +85,14 @@ const emptyCharacterForm: CharacterForm = {
   playerName: '',
   classOrArchetype: '',
   ancestry: '',
+  level: '',
+  currentHp: '',
+  maxHp: '',
+  armorClass: '',
   status: 'active',
   description: '',
+  notableGear: '',
+  gmNotes: '',
   notes: '',
 }
 
@@ -96,10 +122,21 @@ const translations = {
     classPlaceholder: 'Bard, Investigator, Pilot...',
     ancestry: 'Ancestry',
     ancestryPlaceholder: 'Human, Elf, Android...',
+    level: 'Level',
+    currentHp: 'Current HP',
+    maxHp: 'Max HP',
+    armorClass: 'AC',
     status: 'Status',
     descriptionLabel: 'Description',
     descriptionPlaceholder:
       'Who is this character?',
+    stats: 'Statistics',
+    notableGear: 'Equipment / Magic Items',
+    notableGearPlaceholder:
+      'Magic items, signature weapons, armor or other important equipment...',
+    gmNotes: 'GM Notes',
+    gmNotesPlaceholder:
+      'Private reminders, secrets or information useful to the GM...',
     notes: 'Notes',
     notesPlaceholder:
       'Goals, relationships, secrets, memorable details...',
@@ -128,7 +165,7 @@ const translations = {
     eyebrow: 'Grupo de aventureros',
     title: 'Personajes',
     description:
-      'Llevá un registro de los héroes y personajes jugadores que dan forma a la campaña.',
+      'Lleva un registro de los héroes y personajes jugadores que dan forma a la campaña.',
     newCharacter: 'Nuevo personaje',
     createCharacter: 'Crear personaje',
     editCharacter: 'Editar personaje',
@@ -140,7 +177,7 @@ const translations = {
     loading: 'Cargando personajes...',
     noCharactersTitle: 'Todavía no hay personajes registrados.',
     noCharactersText:
-      'Agregá el primer personaje y empezá a construir el grupo.',
+      'Agrega el primer personaje y empieza a construir el grupo.',
     name: 'Nombre',
     namePlaceholder: 'Nombre del personaje',
     player: 'Jugador',
@@ -149,15 +186,26 @@ const translations = {
     classPlaceholder: 'Bardo, Investigador, Piloto...',
     ancestry: 'Ascendencia',
     ancestryPlaceholder: 'Humano, Elfo, Androide...',
+    level: 'Nivel',
+    currentHp: 'HP actual',
+    maxHp: 'HP máximo',
+    armorClass: 'AC',
     status: 'Estado',
     descriptionLabel: 'Descripción',
     descriptionPlaceholder:
       '¿Quién es este personaje?',
+    stats: 'Estadísticas',
+    notableGear: 'Equipo / Objetos mágicos',
+    notableGearPlaceholder:
+      'Objetos mágicos, armas características, armaduras u otro equipo importante...',
+    gmNotes: 'Notas del GM',
+    gmNotesPlaceholder:
+      'Recordatorios privados, secretos o información útil para el GM...',
     notes: 'Notas',
     notesPlaceholder:
       'Objetivos, relaciones, secretos, detalles memorables...',
     nameRequired:
-      'Escribí un nombre para el personaje antes de guardarlo.',
+      'Escribe un nombre para el personaje antes de guardarlo.',
     loadError:
       'No pudimos cargar los personajes.',
     saveError:
@@ -182,6 +230,7 @@ function CharactersSection({
   language,
   campaignId,
 }: CharactersSectionProps) {
+  const confirmAction = useConfirm()
   const t =
     translations[language]
 
@@ -239,6 +288,25 @@ function CharactersSection({
   ] =
     useState('')
 
+  const [
+    campaignRole,
+    setCampaignRole,
+  ] =
+    useState<CampaignRole | null>(
+      null,
+    )
+
+  const [
+    gmNotesByCharacter,
+    setGmNotesByCharacter,
+  ] =
+    useState<Record<string, string>>(
+      {},
+    )
+
+  const canAccessGmNotes =
+    campaignRole === 'gm'
+
   useEffect(() => {
     const loadCharacters =
       async () => {
@@ -246,6 +314,59 @@ function CharactersSection({
         setErrorMessage('')
 
         try {
+          const {
+            data: userData,
+            error: userError,
+          } =
+            await supabase.auth.getUser()
+
+          if (
+            userError ||
+            !userData.user
+          ) {
+            throw (
+              userError ??
+              new Error(
+                'No authenticated user.',
+              )
+            )
+          }
+
+          const {
+            data: membership,
+            error: membershipError,
+          } =
+            await supabase
+              .from(
+                'campaign_members',
+              )
+              .select(
+                'role',
+              )
+              .eq(
+                'campaign_id',
+                campaignId,
+              )
+              .eq(
+                'user_id',
+                userData.user.id,
+              )
+              .maybeSingle()
+
+          if (membershipError) {
+            throw membershipError
+          }
+
+          const resolvedRole: CampaignRole | null =
+            membership?.role === 'gm' ||
+            membership?.role === 'player'
+              ? membership.role as CampaignRole
+              : null
+
+          setCampaignRole(
+            resolvedRole,
+          )
+
           const {
             data,
             error,
@@ -265,6 +386,12 @@ function CharactersSection({
                   status,
                   description,
                   notes,
+                  level,
+                  current_hp,
+                  max_hp,
+                  armor_class,
+                  notable_gear,
+                  image_path,
                   created_at
                 `,
               )
@@ -287,6 +414,63 @@ function CharactersSection({
             (data ??
               []) as CampaignCharacter[],
           )
+
+          if (
+            resolvedRole === 'gm'
+          ) {
+            const {
+              data: privateNotes,
+              error: privateNotesError,
+            } =
+              await supabase
+                .from(
+                  'character_gm_notes',
+                )
+                .select(
+                  `
+                    character_id,
+                    notes
+                  `,
+                )
+                .eq(
+                  'campaign_id',
+                  campaignId,
+                )
+
+            if (privateNotesError) {
+              throw privateNotesError
+            }
+
+            const notesMap =
+              (
+                privateNotes ??
+                []
+              ).reduce<
+                Record<string, string>
+              >(
+                (
+                  accumulator,
+                  note,
+                ) => {
+                  accumulator[
+                    note.character_id
+                  ] =
+                    note.notes ??
+                    ''
+
+                  return accumulator
+                },
+                {},
+              )
+
+            setGmNotesByCharacter(
+              notesMap,
+            )
+          } else {
+            setGmNotesByCharacter(
+              {},
+            )
+          }
         } catch (error) {
           console.error(
             'Error al cargar personajes:',
@@ -345,12 +529,43 @@ function CharactersSection({
           character.ancestry ??
           '',
 
+        level:
+          character.level !== null
+            ? String(character.level)
+            : '',
+
+        currentHp:
+          character.current_hp !== null
+            ? String(character.current_hp)
+            : '',
+
+        maxHp:
+          character.max_hp !== null
+            ? String(character.max_hp)
+            : '',
+
+        armorClass:
+          character.armor_class !== null
+            ? String(character.armor_class)
+            : '',
+
         status:
           character.status,
 
         description:
           character.description ??
           '',
+
+        notableGear:
+          character.notable_gear ??
+          '',
+
+        gmNotes:
+          canAccessGmNotes
+            ? gmNotesByCharacter[
+                character.id
+              ] ?? ''
+            : '',
 
         notes:
           character.notes ??
@@ -372,6 +587,96 @@ function CharactersSection({
       })
 
       setErrorMessage('')
+    }
+
+  const savePrivateGmNotes =
+    async (
+      characterId: string,
+    ) => {
+      if (!canAccessGmNotes) {
+        return
+      }
+
+      const notes =
+        form.gmNotes.trim()
+
+      if (!notes) {
+        const {
+          error,
+        } =
+          await supabase
+            .from(
+              'character_gm_notes',
+            )
+            .delete()
+            .eq(
+              'character_id',
+              characterId,
+            )
+            .eq(
+              'campaign_id',
+              campaignId,
+            )
+
+        if (error) {
+          throw error
+        }
+
+        setGmNotesByCharacter(
+          (
+            current,
+          ) => {
+            const next = {
+              ...current,
+            }
+
+            delete next[
+              characterId
+            ]
+
+            return next
+          },
+        )
+
+        return
+      }
+
+      const {
+        error,
+      } =
+        await supabase
+          .from(
+            'character_gm_notes',
+          )
+          .upsert(
+            {
+              character_id:
+                characterId,
+              campaign_id:
+                campaignId,
+              notes,
+              updated_at:
+                new Date().toISOString(),
+            },
+            {
+              onConflict:
+                'character_id',
+            },
+          )
+
+      if (error) {
+        throw error
+      }
+
+      setGmNotesByCharacter(
+        (
+          current,
+        ) => ({
+          ...current,
+          [characterId]:
+            notes,
+        }),
+      )
     }
 
   const handleSave =
@@ -414,11 +719,35 @@ function CharactersSection({
           form.ancestry.trim() ||
           null,
 
+        level:
+          form.level.trim()
+            ? Number(form.level)
+            : null,
+
+        current_hp:
+          form.currentHp.trim()
+            ? Number(form.currentHp)
+            : null,
+
+        max_hp:
+          form.maxHp.trim()
+            ? Number(form.maxHp)
+            : null,
+
+        armor_class:
+          form.armorClass.trim()
+            ? Number(form.armorClass)
+            : null,
+
         status:
           form.status,
 
         description:
           form.description.trim() ||
+          null,
+
+        notable_gear:
+          form.notableGear.trim() ||
           null,
 
         notes:
@@ -458,6 +787,12 @@ function CharactersSection({
                   status,
                   description,
                   notes,
+                  level,
+                  current_hp,
+                  max_hp,
+                  armor_class,
+                  notable_gear,
+                  image_path,
                   created_at
                 `,
               )
@@ -466,6 +801,10 @@ function CharactersSection({
           if (error) {
             throw error
           }
+
+          await savePrivateGmNotes(
+            editingId,
+          )
 
           setCharacters(
             (
@@ -512,6 +851,12 @@ function CharactersSection({
                   status,
                   description,
                   notes,
+                  level,
+                  current_hp,
+                  max_hp,
+                  armor_class,
+                  notable_gear,
+                  image_path,
                   created_at
                 `,
               )
@@ -520,6 +865,12 @@ function CharactersSection({
           if (error) {
             throw error
           }
+
+          await savePrivateGmNotes(
+            (
+              data as CampaignCharacter
+            ).id,
+          )
 
           setCharacters(
             (
@@ -564,9 +915,7 @@ function CharactersSection({
         string,
     ) => {
       const confirmed =
-        window.confirm(
-          t.deleteConfirm,
-        )
+        await confirmAction({ message: t.deleteConfirm, variant: 'danger' })
 
       if (!confirmed) {
         return
@@ -857,6 +1206,114 @@ function CharactersSection({
 
             <label>
               <span>
+                {t.level}
+              </span>
+
+              <input
+                type="number"
+                min="0"
+                value={
+                  form.level
+                }
+                onChange={(
+                  event,
+                ) =>
+                  setForm(
+                    (
+                      current,
+                    ) => ({
+                      ...current,
+                      level:
+                        event.target.value,
+                    }),
+                  )
+                }
+              />
+            </label>
+
+            <label>
+              <span>
+                {t.currentHp}
+              </span>
+
+              <input
+                type="number"
+                min="0"
+                value={
+                  form.currentHp
+                }
+                onChange={(
+                  event,
+                ) =>
+                  setForm(
+                    (
+                      current,
+                    ) => ({
+                      ...current,
+                      currentHp:
+                        event.target.value,
+                    }),
+                  )
+                }
+              />
+            </label>
+
+            <label>
+              <span>
+                {t.maxHp}
+              </span>
+
+              <input
+                type="number"
+                min="0"
+                value={
+                  form.maxHp
+                }
+                onChange={(
+                  event,
+                ) =>
+                  setForm(
+                    (
+                      current,
+                    ) => ({
+                      ...current,
+                      maxHp:
+                        event.target.value,
+                    }),
+                  )
+                }
+              />
+            </label>
+
+            <label>
+              <span>
+                {t.armorClass}
+              </span>
+
+              <input
+                type="number"
+                min="0"
+                value={
+                  form.armorClass
+                }
+                onChange={(
+                  event,
+                ) =>
+                  setForm(
+                    (
+                      current,
+                    ) => ({
+                      ...current,
+                      armorClass:
+                        event.target.value,
+                    }),
+                  )
+                }
+              />
+            </label>
+
+            <label>
+              <span>
                 {t.status}
               </span>
 
@@ -927,6 +1384,64 @@ function CharactersSection({
                 }
               />
             </label>
+
+            <label className="session-editor-full">
+              <span>
+                {t.notableGear}
+              </span>
+
+              <textarea
+                value={
+                  form.notableGear
+                }
+                placeholder={
+                  t.notableGearPlaceholder
+                }
+                onChange={(
+                  event,
+                ) =>
+                  setForm(
+                    (
+                      current,
+                    ) => ({
+                      ...current,
+                      notableGear:
+                        event.target.value,
+                    }),
+                  )
+                }
+              />
+            </label>
+
+            {canAccessGmNotes && (
+              <label className="session-editor-full">
+                <span>
+                  {t.gmNotes}
+                </span>
+
+                <textarea
+                  value={
+                    form.gmNotes
+                  }
+                  placeholder={
+                    t.gmNotesPlaceholder
+                  }
+                  onChange={(
+                    event,
+                  ) =>
+                    setForm(
+                      (
+                        current,
+                      ) => ({
+                        ...current,
+                        gmNotes:
+                          event.target.value,
+                      }),
+                    )
+                  }
+                />
+              </label>
+            )}
 
             <label className="session-editor-full">
               <span>
@@ -1122,10 +1637,75 @@ function CharactersSection({
                   </p>
                 )}
 
+                {(character.level !== null ||
+                  character.current_hp !== null ||
+                  character.max_hp !== null ||
+                  character.armor_class !== null) && (
+                  <div className="session-card-notes">
+                    <LuHeartPulse />
+
+                    <span>
+                      <strong>
+                        {t.stats}: {' '}
+                      </strong>
+
+                      {[
+                        character.level !== null
+                          ? `${t.level}: ${character.level}`
+                          : null,
+                        character.current_hp !== null ||
+                        character.max_hp !== null
+                          ? `HP: ${character.current_hp ?? '—'} / ${character.max_hp ?? '—'}`
+                          : null,
+                        character.armor_class !== null
+                          ? `${t.armorClass}: ${character.armor_class}`
+                          : null,
+                      ]
+                        .filter(Boolean)
+                        .join(' · ')}
+                    </span>
+                  </div>
+                )}
+
                 <p>
                   {character.description ||
                     t.noDescription}
                 </p>
+
+                {character.notable_gear && (
+                  <div className="session-card-notes">
+                    <LuBackpack />
+
+                    <span>
+                      <strong>
+                        {t.notableGear}: {' '}
+                      </strong>
+
+                      {character.notable_gear}
+                    </span>
+                  </div>
+                )}
+
+                {canAccessGmNotes &&
+                  gmNotesByCharacter[
+                    character.id
+                  ] && (
+                  <div className="session-card-notes">
+                    <LuShield />
+
+                    <span>
+                      <strong>
+                        {t.gmNotes}: {' '}
+                      </strong>
+
+                      {
+                        gmNotesByCharacter[
+                          character.id
+                        ]
+                      }
+                    </span>
+                  </div>
+                )}
 
                 {character.notes && (
                   <div className="session-card-notes">

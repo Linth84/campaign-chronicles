@@ -33,6 +33,10 @@ type Language =
   | 'en'
   | 'es'
 
+type CampaignRole =
+  | 'gm'
+  | 'player'
+
 interface ImportCampaignPageProps {
   language: Language
   onBack: () => void
@@ -155,6 +159,27 @@ const translations = {
 
     sourceTitle:
       'Imported campaign notes',
+
+    roleQuestion:
+      'Are you a GM or a player?',
+
+    roleHelp:
+      'Your role controls which campaign tools and private information you can access.',
+
+    roleGm:
+      'GM',
+
+    roleGmDescription:
+      'Manage the campaign and access private GM information.',
+
+    rolePlayer:
+      'Player',
+
+    rolePlayerDescription:
+      'Keep track of the campaign from a player perspective.',
+
+    roleRequired:
+      'Choose your role in this campaign.',
   },
 
   es: {
@@ -162,13 +187,13 @@ const translations = {
       'Volver a campañas',
 
     eyebrow:
-      'Traé tu historia',
+      'Trae tu historia',
 
     title:
       'Importar campaña',
 
     intro:
-      'Pegá las notas de tu campaña o subí un documento TXT, Word o PDF.',
+      'Pega las notas de tu campaña o sube un documento TXT, Word o PDF.',
 
     campaignName:
       'Nombre de la campaña',
@@ -183,13 +208,13 @@ const translations = {
       'D&D 5e, Pathfinder, Call of Cthulhu...',
 
     templateEyebrow:
-      'Empezá con una plantilla',
+      'Empieza con una plantilla',
 
     templateTitle:
-      'Usá nuestra plantilla de campaña',
+      'Usa nuestra plantilla de campaña',
 
     templateDescription:
-      'Descargá una plantilla estructurada si empezás desde cero. La versión Word es editable; la versión PDF sirve como guía imprimible o de referencia.',
+      'Descarga una plantilla estructurada si empiezas desde cero. La versión Word es editable; la versión PDF sirve como guía imprimible o de referencia.',
 
     wordTemplate:
       'Descargar plantilla Word',
@@ -201,7 +226,7 @@ const translations = {
       'Pegar notas',
 
     pastePlaceholder:
-      'Pegá acá las notas de tu campaña...',
+      'Pega aquí las notas de tu campaña...',
 
     or:
       'o',
@@ -249,7 +274,7 @@ const translations = {
       'Notas',
 
     nothing:
-      'Primero pegá texto o elegí un documento.',
+      'Primero pega texto o elige un documento.',
 
     import:
       'Importar campaña',
@@ -265,6 +290,27 @@ const translations = {
 
     sourceTitle:
       'Notas importadas de la campaña',
+
+    roleQuestion:
+      '¿Eres GM o jugador?',
+
+    roleHelp:
+      'Tu rol determina a qué herramientas e información privada de la campaña puedes acceder.',
+
+    roleGm:
+      'GM',
+
+    roleGmDescription:
+      'Gestiona la campaña y accede a la información privada del GM.',
+
+    rolePlayer:
+      'Jugador',
+
+    rolePlayerDescription:
+      'Lleva el registro de la campaña desde la perspectiva de un jugador.',
+
+    roleRequired:
+      'Elige tu rol en esta campaña.',
   },
 }
 
@@ -296,6 +342,14 @@ function ImportCampaignPage({
     setSystem,
   ] =
     useState('')
+
+  const [
+    campaignRole,
+    setCampaignRole,
+  ] =
+    useState<CampaignRole | null>(
+      null,
+    )
 
   const [
     sourceText,
@@ -489,6 +543,14 @@ function ImportCampaignPage({
         return
       }
 
+      if (!campaignRole) {
+        setErrorMessage(
+          t.roleRequired,
+        )
+
+        return
+      }
+
       setImporting(true)
       setErrorMessage('')
 
@@ -571,6 +633,26 @@ function ImportCampaignPage({
 
         createdCampaignId =
           campaign.id
+
+        const {
+          error: memberError,
+        } =
+          await supabase
+            .from(
+              'campaign_members',
+            )
+            .insert({
+              campaign_id:
+                campaign.id,
+              user_id:
+                userData.user.id,
+              role:
+                campaignRole,
+            })
+
+        if (memberError) {
+          throw memberError
+        }
 
         if (
           parsed.structured
@@ -1020,6 +1102,75 @@ function ImportCampaignPage({
               />
             </label>
           </div>
+
+
+          <fieldset className="campaign-role-fieldset">
+            <legend>
+              {t.roleQuestion}
+            </legend>
+
+            <p className="campaign-role-help">
+              {t.roleHelp}
+            </p>
+
+            <div className="campaign-role-options">
+              <label className={`campaign-role-option ${campaignRole === 'gm' ? 'campaign-role-option-active' : ''}`}>
+                <input
+                  type="radio"
+                  name="campaign-role"
+                  value="gm"
+                  checked={
+                    campaignRole ===
+                    'gm'
+                  }
+                  onChange={() => {
+                    setCampaignRole(
+                      'gm',
+                    )
+                    setErrorMessage('')
+                  }}
+                />
+
+                <span>
+                  <strong>
+                    {t.roleGm}
+                  </strong>
+
+                  <small>
+                    {t.roleGmDescription}
+                  </small>
+                </span>
+              </label>
+
+              <label className={`campaign-role-option ${campaignRole === 'player' ? 'campaign-role-option-active' : ''}`}>
+                <input
+                  type="radio"
+                  name="campaign-role"
+                  value="player"
+                  checked={
+                    campaignRole ===
+                    'player'
+                  }
+                  onChange={() => {
+                    setCampaignRole(
+                      'player',
+                    )
+                    setErrorMessage('')
+                  }}
+                />
+
+                <span>
+                  <strong>
+                    {t.rolePlayer}
+                  </strong>
+
+                  <small>
+                    {t.rolePlayerDescription}
+                  </small>
+                </span>
+              </label>
+            </div>
+          </fieldset>
 
           {/* =============================================
               PLANTILLAS

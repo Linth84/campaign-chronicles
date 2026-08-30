@@ -1,0 +1,170 @@
+.dashboard-invitations {
+  margin-bottom: 1.4rem;
+  padding: 1.1rem;
+  border: 1px solid rgba(202, 169, 96, 0.2);
+  border-radius: 1rem;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(196, 158, 78, 0.07),
+      rgba(12, 17, 24, 0.78) 44%
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+    0 18px 40px rgba(0, 0, 0, 0.14);
+}
+
+.dashboard-invitations-heading {
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.dashboard-invitations-icon {
+  width: 2.6rem;
+  height: 2.6rem;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(202, 169, 96, 0.22);
+  border-radius: 0.8rem;
+  background: rgba(202, 169, 96, 0.06);
+  color: #caa960;
+}
+
+.dashboard-invitations-eyebrow {
+  margin: 0 0 0.2rem;
+  color: #caa960 !important;
+  font-size: 0.7rem;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.dashboard-invitations-heading h2 {
+  margin: 0;
+  font-family: 'Marcellus', serif;
+  color: #f1e7d4;
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+.dashboard-invitations-heading > div > p:last-child {
+  margin: 0.3rem 0 0;
+  color: rgba(238, 232, 220, 0.58);
+  font-size: 0.84rem;
+}
+
+.dashboard-invitations-list {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.dashboard-invitation-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem;
+  border: 1px solid rgba(207, 183, 131, 0.12);
+  border-radius: 0.85rem;
+  background: rgba(5, 9, 14, 0.46);
+}
+
+.dashboard-invitation-main {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.dashboard-invitation-symbol {
+  width: 2.3rem;
+  height: 2.3rem;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 0.7rem;
+  background: rgba(202, 169, 96, 0.06);
+  color: #caa960;
+}
+
+.dashboard-invitation-main strong {
+  display: block;
+  overflow: hidden;
+  color: #eee5d4;
+  font-family: 'Marcellus', serif;
+  font-size: 0.96rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-invitation-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 0.32rem;
+  color: rgba(238, 232, 220, 0.46);
+  font-size: 0.7rem;
+}
+
+.dashboard-invitation-actions {
+  display: flex;
+  gap: 0.55rem;
+  flex: 0 0 auto;
+}
+
+.dashboard-invitation-actions button {
+  min-height: 2.35rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0 0.8rem;
+  border-radius: 0.65rem;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.dashboard-invitation-decline {
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.025);
+  color: rgba(238, 232, 220, 0.64);
+}
+
+.dashboard-invitation-accept {
+  border: 1px solid rgba(202, 169, 96, 0.36);
+  background: rgba(202, 169, 96, 0.1);
+  color: #e3c98e;
+}
+
+.dashboard-invitation-actions button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+@media (max-width: 680px) {
+  .dashboard-invitation-card {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .dashboard-invitation-actions {
+    width: 100%;
+  }
+
+  .dashboard-invitation-actions button {
+    flex: 1;
+  }
+}
+
+/* Badge de rol — Jugador */
+.campaign-role-badge-player {
+  border-color: rgba(92, 156, 214, 0.34) !important;
+  background: rgba(72, 128, 184, 0.1) !important;
+  color: #9fc7eb !important;
+}
