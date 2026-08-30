@@ -671,3 +671,201 @@
   opacity: 0.55;
   cursor: not-allowed;
 }
+
+
+/* =========================================================
+   PANTALLAS DE ÉXITO — VERIFICACIÓN / CONTRASEÑA
+   ========================================================= */
+
+.auth-success-card {
+  position: relative;
+  overflow: hidden;
+
+  max-width: 520px;
+
+  padding: 46px 42px 40px;
+
+  text-align: center;
+
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(199, 167, 106, 0.12),
+      transparent 42%
+    ),
+    var(--color-fondo-secundario);
+
+  border-color: rgba(199, 167, 106, 0.24);
+
+  box-shadow:
+    var(--sombra-fuerte),
+    0 0 72px rgba(199, 167, 106, 0.05);
+}
+
+.auth-success-card::before,
+.auth-success-card::after {
+  content: '';
+
+  position: absolute;
+
+  width: 130px;
+  height: 130px;
+
+  pointer-events: none;
+
+  opacity: 0.28;
+}
+
+.auth-success-card::before {
+  top: -66px;
+  left: -66px;
+
+  border-right: 1px solid var(--color-borde-dorado);
+  border-bottom: 1px solid var(--color-borde-dorado);
+
+  transform: rotate(45deg);
+}
+
+.auth-success-card::after {
+  right: -66px;
+  bottom: -66px;
+
+  border-top: 1px solid var(--color-borde-dorado);
+  border-left: 1px solid var(--color-borde-dorado);
+
+  transform: rotate(45deg);
+}
+
+.auth-success-logo {
+  position: relative;
+  z-index: 1;
+
+  width: min(300px, 82%);
+  height: auto;
+
+  display: block;
+
+  margin: 0 auto 26px;
+
+  filter:
+    drop-shadow(
+      0 0 18px
+      rgba(199, 167, 106, 0.12)
+    );
+}
+
+.auth-success-seal {
+  position: relative;
+  z-index: 1;
+
+  width: 68px;
+  height: 68px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: 0 auto 24px;
+
+  color: var(--color-dorado-claro);
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(199, 167, 106, 0.15),
+      rgba(199, 167, 106, 0.04)
+    );
+
+  border: 1px solid var(--color-borde-dorado);
+  border-radius: 50%;
+
+  box-shadow:
+    0 0 0 7px rgba(199, 167, 106, 0.025),
+    0 0 30px rgba(199, 167, 106, 0.08);
+}
+
+.auth-success-seal svg {
+  width: 28px;
+  height: 28px;
+}
+
+.auth-success-heading {
+  position: relative;
+  z-index: 1;
+
+  margin-bottom: 30px;
+
+  text-align: center;
+}
+
+.auth-success-heading h1 {
+  max-width: 430px;
+
+  margin: 0 auto 14px;
+
+  font-size: clamp(
+    30px,
+    5vw,
+    40px
+  );
+
+  line-height: 1.18;
+}
+
+.auth-success-heading p {
+  max-width: 410px;
+
+  margin: 0 auto;
+
+  font-size: 15px;
+  line-height: 1.7;
+
+  color: var(--color-texto-secundario);
+}
+
+.auth-success-button {
+  position: relative;
+  z-index: 1;
+
+  width: 100%;
+
+  gap: 9px;
+
+  margin-top: 0;
+}
+
+.auth-success-button svg {
+  width: 18px;
+  height: 18px;
+
+  flex-shrink: 0;
+}
+
+@media (max-width: 520px) {
+  .auth-success-card {
+    padding:
+      38px 24px
+      30px;
+  }
+
+  .auth-success-logo {
+    width: min(250px, 82%);
+
+    margin-bottom: 22px;
+  }
+
+  .auth-success-seal {
+    width: 62px;
+    height: 62px;
+
+    margin-bottom: 22px;
+  }
+
+  .auth-success-heading {
+    margin-bottom: 26px;
+  }
+
+  .auth-success-heading h1 {
+    font-size: 31px;
+  }
+}

@@ -1,6 +1,5 @@
 import {
-  LuBookOpen,
-  LuCheck,
+  LuBadgeCheck,
   LuLogIn,
 } from 'react-icons/lu'
 
@@ -16,9 +15,6 @@ interface EmailVerifiedPageProps {
 
 const translations = {
   en: {
-    eyebrow:
-      'Campaign Chronicles',
-
     title:
       'Your account has been verified',
 
@@ -27,12 +23,12 @@ const translations = {
 
     button:
       'Sign in',
+
+    logoAlt:
+      'Campaign Chronicles',
   },
 
   es: {
-    eyebrow:
-      'Campaign Chronicles',
-
     title:
       'Tu cuenta ha sido verificada',
 
@@ -41,6 +37,9 @@ const translations = {
 
     button:
       'Iniciar sesión',
+
+    logoAlt:
+      'Campaign Chronicles',
   },
 }
 
@@ -53,36 +52,29 @@ function EmailVerifiedPage({
 
   return (
     <main className="auth-page">
-      <section className="auth-card">
+      <section className="auth-card auth-success-card">
         {/* =================================================
             MARCA
             ================================================= */}
 
-        <div className="auth-brand">
-          <div className="auth-brand-icon">
-            <LuBookOpen />
-          </div>
-
-          <p className="auth-eyebrow">
-            {t.eyebrow}
-          </p>
-        </div>
+        <img
+          className="auth-success-logo"
+          src={`${import.meta.env.BASE_URL}images/campaign-chronicles-logo.png`}
+          alt={t.logoAlt}
+        />
 
         {/* =================================================
             CONFIRMACIÓN
             ================================================= */}
 
-        <div className="auth-heading">
-          <div
-            className="auth-brand-icon"
-            style={{
-              margin:
-                '0 auto 20px',
-            }}
-          >
-            <LuCheck />
-          </div>
+        <div
+          className="auth-success-seal"
+          aria-hidden="true"
+        >
+          <LuBadgeCheck />
+        </div>
 
+        <div className="auth-success-heading">
           <h1>
             {t.title}
           </h1>
@@ -98,7 +90,7 @@ function EmailVerifiedPage({
 
         <button
           type="button"
-          className="auth-submit-button"
+          className="auth-submit-button auth-success-button"
           onClick={
             onContinue
           }
