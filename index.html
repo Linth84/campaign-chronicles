@@ -166,6 +166,26 @@
       rel="manifest"
       href="%BASE_URL%site.webmanifest"
     />
+    <script>
+  const redirect =
+    sessionStorage.getItem(
+      'spa-redirect',
+    )
+
+  if (redirect) {
+    sessionStorage.removeItem(
+      'spa-redirect',
+    )
+
+    window.history.replaceState(
+      null,
+      '',
+      redirect,
+    )
+  }
+</script>
+
+
   </head>
 
   <body>
