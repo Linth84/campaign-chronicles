@@ -809,9 +809,20 @@ function AppContent() {
         <Route
           path="/invite"
           element={
-            <Navigate
-              to="/dashboard"
-              replace
+            <InvitePage
+              language={
+                language
+              }
+              onCreateAccount={() =>
+                navigate(
+                  '/dashboard',
+                )
+              }
+              onSignIn={() =>
+                navigate(
+                  '/dashboard',
+                )
+              }
             />
           }
         />
