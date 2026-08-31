@@ -211,7 +211,7 @@ Deno.serve(
       } =
         await resend.emails.send({
           from:
-            'Campaign Chronicles Support <support@campaign-chronicles.com>',
+            'Campaign Chronicles Website <notifications@campaign-chronicles.com>',
 
           to: [
             'support@campaign-chronicles.com',
