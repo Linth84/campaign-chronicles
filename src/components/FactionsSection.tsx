@@ -6,7 +6,6 @@ import {
   LuCrown,
   LuEye,
   LuEyeOff,
-  LuImage,
   LuPencil,
   LuShield,
   LuTrash2,
