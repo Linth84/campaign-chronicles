@@ -1,6 +1,7 @@
 import { useConfirm } from './ConfirmProvider'
 import {
   useEffect,
+  useRef,
   useState,
 } from 'react'
 
@@ -12,6 +13,7 @@ import {
   LuBackpack,
   LuFilePenLine,
   LuHeartPulse,
+  LuImagePlus,
   LuPlus,
   LuSave,
   LuShield,
@@ -24,6 +26,11 @@ import {
 import {
   supabase,
 } from '../utils/supabase'
+import {
+  removeCampaignPortrait,
+  resolveCampaignImageUrl,
+  uploadCampaignPortrait,
+} from '../utils/campaignImages'
 
 type Language =
   | 'en'
@@ -159,6 +166,11 @@ const translations = {
     statusMissing: 'Missing',
     statusDead: 'Dead',
     statusRetired: 'Retired',
+    portrait: 'Portrait',
+    portraitHelp: 'JPG, PNG or WebP. The image is optimized automatically.',
+    choosePortrait: 'Choose image',
+    removePortrait: 'Remove portrait',
+    imageError: 'We could not process the portrait.',
   },
 
   es: {
@@ -223,6 +235,11 @@ const translations = {
     statusMissing: 'Desaparecido',
     statusDead: 'Muerto',
     statusRetired: 'Retirado',
+    portrait: 'Retrato',
+    portraitHelp: 'JPG, PNG o WebP. La imagen se optimiza automáticamente.',
+    choosePortrait: 'Elegir imagen',
+    removePortrait: 'Quitar retrato',
+    imageError: 'No pudimos procesar el retrato.',
   },
 }
 
@@ -303,6 +320,17 @@ function CharactersSection({
     useState<Record<string, string>>(
       {},
     )
+
+  const [portraitFile, setPortraitFile] =
+    useState<File | null>(null)
+  const [portraitPreview, setPortraitPreview] =
+    useState<string | null>(null)
+  const [removePortrait, setRemovePortrait] =
+    useState(false)
+  const [imageUrls, setImageUrls] =
+    useState<Record<string, string>>({})
+  const portraitInputRef =
+    useRef<HTMLInputElement | null>(null)
 
   const canAccessGmNotes =
     campaignRole === 'gm'
@@ -491,9 +519,65 @@ function CharactersSection({
     t.loadError,
   ])
 
+  useEffect(() => {
+    let cancelled = false
+
+    const loadImageUrls = async () => {
+      const entries = await Promise.all(
+        characters
+          .filter((character) => character.image_path)
+          .map(async (character) => [
+            character.id,
+            await resolveCampaignImageUrl(character.image_path),
+          ] as const),
+      )
+
+      if (!cancelled) {
+        setImageUrls(
+          Object.fromEntries(
+            entries.filter(([, url]) => Boolean(url)),
+          ) as Record<string, string>,
+        )
+      }
+    }
+
+    void loadImageUrls()
+
+    return () => {
+      cancelled = true
+    }
+  }, [characters])
+
+  const resetPortraitEditor = () => {
+    if (portraitPreview?.startsWith('blob:')) {
+      URL.revokeObjectURL(portraitPreview)
+    }
+    setPortraitFile(null)
+    setPortraitPreview(null)
+    setRemovePortrait(false)
+    if (portraitInputRef.current) {
+      portraitInputRef.current.value = ''
+    }
+  }
+
+  const choosePortrait = (file: File | null) => {
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      setErrorMessage(t.imageError)
+      return
+    }
+    if (portraitPreview?.startsWith('blob:')) {
+      URL.revokeObjectURL(portraitPreview)
+    }
+    setPortraitFile(file)
+    setPortraitPreview(URL.createObjectURL(file))
+    setRemovePortrait(false)
+  }
+
   const openNewCharacter =
     () => {
       setEditingId(null)
+      resetPortraitEditor()
 
       setForm({
         ...emptyCharacterForm,
@@ -511,6 +595,10 @@ function CharactersSection({
     ) => {
       setEditingId(
         character.id,
+      )
+      resetPortraitEditor()
+      setPortraitPreview(
+        imageUrls[character.id] ?? null,
       )
 
       setForm({
@@ -581,6 +669,7 @@ function CharactersSection({
     () => {
       setEditorOpen(false)
       setEditingId(null)
+      resetPortraitEditor()
 
       setForm({
         ...emptyCharacterForm,
@@ -802,6 +891,44 @@ function CharactersSection({
             throw error
           }
 
+          let savedCharacter =
+            data as CampaignCharacter
+
+          if (removePortrait && savedCharacter.image_path) {
+            await removeCampaignPortrait(
+              savedCharacter.image_path,
+            )
+            const { data: cleared, error: clearError } =
+              await supabase
+                .from('characters')
+                .update({ image_path: null })
+                .eq('id', editingId)
+                .eq('campaign_id', campaignId)
+                .select('*')
+                .single()
+            if (clearError) throw clearError
+            savedCharacter = cleared as CampaignCharacter
+          }
+
+          if (portraitFile) {
+            const imagePath = await uploadCampaignPortrait({
+              campaignId,
+              entityType: 'characters',
+              entityId: editingId,
+              file: portraitFile,
+            })
+            const { data: withImage, error: imageUpdateError } =
+              await supabase
+                .from('characters')
+                .update({ image_path: imagePath })
+                .eq('id', editingId)
+                .eq('campaign_id', campaignId)
+                .select('*')
+                .single()
+            if (imageUpdateError) throw imageUpdateError
+            savedCharacter = withImage as CampaignCharacter
+          }
+
           await savePrivateGmNotes(
             editingId,
           )
@@ -817,7 +944,7 @@ function CharactersSection({
                   ) =>
                     character.id ===
                     editingId
-                      ? (data as CampaignCharacter)
+                      ? savedCharacter
                       : character,
                 )
                 .sort(
@@ -866,10 +993,30 @@ function CharactersSection({
             throw error
           }
 
+          let savedCharacter =
+            data as CampaignCharacter
+
+          if (portraitFile) {
+            const imagePath = await uploadCampaignPortrait({
+              campaignId,
+              entityType: 'characters',
+              entityId: savedCharacter.id,
+              file: portraitFile,
+            })
+            const { data: withImage, error: imageUpdateError } =
+              await supabase
+                .from('characters')
+                .update({ image_path: imagePath })
+                .eq('id', savedCharacter.id)
+                .eq('campaign_id', campaignId)
+                .select('*')
+                .single()
+            if (imageUpdateError) throw imageUpdateError
+            savedCharacter = withImage as CampaignCharacter
+          }
+
           await savePrivateGmNotes(
-            (
-              data as CampaignCharacter
-            ).id,
+            savedCharacter.id,
           )
 
           setCharacters(
@@ -878,7 +1025,7 @@ function CharactersSection({
             ) =>
               [
                 ...current,
-                data as CampaignCharacter,
+                savedCharacter,
               ].sort(
                 sortCharacters,
               ),
@@ -891,6 +1038,7 @@ function CharactersSection({
 
         setEditorOpen(false)
         setEditingId(null)
+        resetPortraitEditor()
 
         setForm({
           ...emptyCharacterForm,
@@ -925,6 +1073,12 @@ function CharactersSection({
       setSuccessMessage('')
 
       try {
+        const characterToDelete =
+          characters.find((character) => character.id === characterId)
+        if (characterToDelete?.image_path) {
+          await removeCampaignPortrait(characterToDelete.image_path)
+        }
+
         const {
           error,
         } =
@@ -1084,6 +1238,57 @@ function CharactersSection({
             >
               <LuX />
             </button>
+          </div>
+
+          <div className="campaign-portrait-editor">
+            <div className="campaign-portrait-preview">
+              {portraitPreview && !removePortrait ? (
+                <img src={portraitPreview} alt="" />
+              ) : (
+                <LuUserRound aria-hidden="true" />
+              )}
+            </div>
+            <div className="campaign-portrait-copy">
+              <strong>{t.portrait}</strong>
+              <span>{t.portraitHelp}</span>
+              <div className="campaign-portrait-actions">
+                <input
+                  ref={portraitInputRef}
+                  className="campaign-portrait-input"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={(event) =>
+                    choosePortrait(event.target.files?.[0] ?? null)
+                  }
+                />
+                <button
+                  type="button"
+                  className="campaign-portrait-button"
+                  onClick={() => portraitInputRef.current?.click()}
+                >
+                  <LuImagePlus />
+                  {t.choosePortrait}
+                </button>
+                {(portraitPreview || (editingId &&
+                  characters.find((item) => item.id === editingId)?.image_path)) && (
+                  <button
+                    type="button"
+                    className="campaign-portrait-button campaign-portrait-button--danger"
+                    onClick={() => {
+                      if (portraitPreview?.startsWith('blob:')) {
+                        URL.revokeObjectURL(portraitPreview)
+                      }
+                      setPortraitFile(null)
+                      setPortraitPreview(null)
+                      setRemovePortrait(true)
+                    }}
+                  >
+                    <LuTrash2 />
+                    {t.removePortrait}
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
 
           <div className="session-editor-grid">
@@ -1565,6 +1770,17 @@ function CharactersSection({
                   character.id
                 }
               >
+                <div className="campaign-card-portrait">
+                  {imageUrls[character.id] ? (
+                    <img
+                      src={imageUrls[character.id]}
+                      alt={character.name}
+                    />
+                  ) : (
+                    <LuUserRound aria-hidden="true" />
+                  )}
+                </div>
+
                 <div className="session-card-top">
                   <div className="session-card-meta">
                     <span className="session-card-number">

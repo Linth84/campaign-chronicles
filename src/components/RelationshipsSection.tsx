@@ -19,6 +19,7 @@ import {
   useNodesState,
 } from '@xyflow/react'
 import type {
+  Connection,
   Edge,
   Node,
   NodeProps,
@@ -44,6 +45,9 @@ import {
 } from 'react-icons/lu'
 
 import { supabase } from '../utils/supabase'
+import {
+  resolveCampaignImageUrl,
+} from '../utils/campaignImages'
 import { useConfirm } from './ConfirmProvider'
 import '../styles/relationships.css'
 
@@ -155,7 +159,7 @@ const TEXT = {
     sameEntity: 'Origin and destination must be different.',
     required: 'Choose an origin, destination and relationship.',
     resetFocus: 'Show entire network',
-    hint: 'Drag nodes to arrange your map. Your layout is saved automatically.',
+    hint: 'Drag nodes to arrange your map. Drag from a node connector to another node to create a relationship.',
     inspectorHint: 'Select a node to focus its connections.',
     privateConnection: 'Private GM connection',
   },
@@ -208,7 +212,7 @@ const TEXT = {
     sameEntity: 'El origen y el destino deben ser diferentes.',
     required: 'Elegí un origen, un destino y una relación.',
     resetFocus: 'Mostrar toda la red',
-    hint: 'Arrastrá los nodos para organizar el mapa. Tu distribución se guarda automáticamente.',
+    hint: 'Arrastrá los nodos para organizar el mapa. Arrastrá desde el conector de un nodo hasta otro para crear una relación.',
     inspectorHint: 'Seleccioná un nodo para enfocar sus conexiones.',
     privateConnection: 'Conexión privada del GM',
   },
@@ -226,11 +230,7 @@ const iconFor = {
 function ChronicleEntityNode({ data }: NodeProps<ChronicleNode>) {
   const Icon = iconFor[data.entity.type]
   const image =
-    data.entity.imagePath &&
-    (/^https?:\/\//i.test(data.entity.imagePath) ||
-      data.entity.imagePath.startsWith('/'))
-      ? data.entity.imagePath
-      : null
+    data.entity.imagePath || null
 
   return (
     <article
@@ -300,6 +300,7 @@ function RelationshipsCanvas({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
+  const [hoveredEdgeId, setHoveredEdgeId] = useState<string | null>(null)
   const [filter, setFilter] = useState<'all' | EntityType>('all')
   const [query, setQuery] = useState('')
   const [relationModal, setRelationModal] = useState(false)
@@ -347,7 +348,7 @@ function RelationshipsCanvas({
           .select('id,name,player_name,class_or_archetype,image_path')
           .eq('campaign_id', campaignId),
         supabase.from('npcs')
-          .select('id,name,role,faction')
+          .select('id,name,role,faction,image_path')
           .eq('campaign_id', campaignId),
         supabase.from('locations')
           .select('id,name,location_type')
@@ -397,6 +398,7 @@ function RelationshipsCanvas({
           type: 'npc' as const,
           name: row.name,
           subtitle: row.role || row.faction || 'NPC',
+          imagePath: row.image_path,
         })),
         ...(locations.data ?? []).map((row: any) => ({
           id: row.id,
@@ -426,7 +428,14 @@ function RelationshipsCanvas({
         })),
       ]
 
-      setEntities(nextEntities)
+      const resolvedEntities = await Promise.all(
+        nextEntities.map(async (entity) => ({
+          ...entity,
+          imagePath: await resolveCampaignImageUrl(entity.imagePath),
+        })),
+      )
+
+      setEntities(resolvedEntities)
       setRelationships((relationRows.data ?? []) as RelationshipRecord[])
       setPositions((positionRows.data ?? []) as PositionRecord[])
     } catch (loadError) {
@@ -516,12 +525,23 @@ function RelationshipsCanvas({
           !selectedKey ||
           source === selectedKey ||
           target === selectedKey
+        const showLabel =
+          hoveredEdgeId === relationship.id ||
+          Boolean(
+            selectedKey &&
+            (
+              source === selectedKey ||
+              target === selectedKey
+            ),
+          )
 
         return {
           id: relationship.id,
           source,
           target,
-          label: relationship.relationship_type,
+          label: showLabel
+            ? relationship.relationship_type
+            : undefined,
           type: 'smoothstep',
           animated: false,
           markerEnd: {
@@ -562,6 +582,7 @@ function RelationshipsCanvas({
     language,
     selectedKey,
     connectedKeys,
+    hoveredEdgeId,
     setNodes,
     setEdges,
   ])
@@ -611,6 +632,28 @@ function RelationshipsCanvas({
       }
     }, 250)
   }, [campaignId])
+
+  const connectNodes = useCallback(
+    (connection: Connection) => {
+      if (
+        !connection.source ||
+        !connection.target ||
+        connection.source === connection.target
+      ) {
+        return
+      }
+
+      setEditing(null)
+      setSourceKey(connection.source)
+      setTargetKey(connection.target)
+      setRelationType('')
+      setRelationNotes('')
+      setVisibility('shared')
+      setError('')
+      setRelationModal(true)
+    },
+    [],
+  )
 
   const openNewRelationship = () => {
     setEditing(null)
@@ -851,6 +894,13 @@ function RelationshipsCanvas({
             nodeTypes={nodeTypes}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
+            onConnect={connectNodes}
+            onEdgeMouseEnter={(_, edge) =>
+              setHoveredEdgeId(edge.id)
+            }
+            onEdgeMouseLeave={() =>
+              setHoveredEdgeId(null)
+            }
             onNodeClick={(_, node) =>
               setSelectedKey((current) =>
                 current === node.id ? null : node.id,
@@ -864,7 +914,11 @@ function RelationshipsCanvas({
             fitViewOptions={{ padding: 0.22, maxZoom: 1 }}
             minZoom={0.25}
             maxZoom={1.65}
-            nodesConnectable={false}
+            nodesConnectable
+            connectionLineStyle={{
+              stroke: '#d1b36f',
+              strokeWidth: 2,
+            }}
             deleteKeyCode={null}
             proOptions={{ hideAttribution: true }}
           >

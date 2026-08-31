@@ -1,6 +1,8 @@
 import {
   LuArrowLeft,
   LuBookOpen,
+  LuCircleHelp,
+  LuHeartHandshake,
   LuLanguages,
   LuLogOut,
   LuUserRound,
@@ -33,27 +35,17 @@ function AppHeader({
   profileActive = false,
   avatarUrl = '',
 }: AppHeaderProps) {
-  const resolvedBack =
-    backLabel ??
-    (language === 'es' ? 'Volver' : 'Back')
-
-  const resolvedProfile =
-    profileLabel ??
-    (language === 'es' ? 'Perfil' : 'Profile')
-
-  const resolvedSignOut =
-    signOutLabel ??
-    (language === 'es' ? 'Cerrar sesión' : 'Sign out')
+  const resolvedBack = backLabel ?? (language === 'es' ? 'Volver' : 'Back')
+  const resolvedProfile = profileLabel ?? (language === 'es' ? 'Perfil' : 'Profile')
+  const resolvedSignOut = signOutLabel ?? (language === 'es' ? 'Cerrar sesión' : 'Sign out')
+  const supportLabel = language === 'es' ? 'Soporte' : 'Support'
+  const donationsLabel = language === 'es' ? 'Apoyar' : 'Support project'
 
   return (
     <header className="app-header">
       <div className="app-header-left">
         {onBack ? (
-          <button
-            type="button"
-            className="app-header-back"
-            onClick={onBack}
-          >
+          <button type="button" className="app-header-back" onClick={onBack}>
             <LuArrowLeft />
             <span>{resolvedBack}</span>
           </button>
@@ -68,63 +60,37 @@ function AppHeader({
       </div>
 
       <div className="app-header-actions">
+        <a className="app-header-public-link" href="/support" aria-label={supportLabel}>
+          <LuCircleHelp />
+          <span>{supportLabel}</span>
+        </a>
+
+        <a className="app-header-public-link app-header-donations" href="/donations" aria-label={donationsLabel}>
+          <LuHeartHandshake />
+          <span>{donationsLabel}</span>
+        </a>
+
         <button
           type="button"
-          className={
-            profileActive
-              ? 'app-header-profile active'
-              : 'app-header-profile'
-          }
+          className={profileActive ? 'app-header-profile active' : 'app-header-profile'}
           onClick={onOpenProfile}
           aria-label={resolvedProfile}
           aria-current={profileActive ? 'page' : undefined}
         >
           <span className="app-header-avatar">
-            {avatarUrl ? (
-              <img src={avatarUrl} alt="" />
-            ) : (
-              <LuUserRound />
-            )}
+            {avatarUrl ? <img src={avatarUrl} alt="" /> : <LuUserRound />}
           </span>
-          <span className="app-header-profile-label">
-            {resolvedProfile}
-          </span>
+          <span className="app-header-profile-label">{resolvedProfile}</span>
         </button>
 
-        <div
-          className="app-header-language"
-          aria-label={
-            language === 'es'
-              ? 'Seleccionar idioma'
-              : 'Select language'
-          }
-        >
+        <div className="app-header-language" aria-label={language === 'es' ? 'Seleccionar idioma' : 'Select language'}>
           <LuLanguages />
-
-          <button
-            type="button"
-            className={language === 'en' ? 'active' : ''}
-            onClick={() => onLanguageChange('en')}
-          >
-            EN
-          </button>
-
+          <button type="button" className={language === 'en' ? 'active' : ''} onClick={() => onLanguageChange('en')}>EN</button>
           <span className="app-header-language-divider" />
-
-          <button
-            type="button"
-            className={language === 'es' ? 'active' : ''}
-            onClick={() => onLanguageChange('es')}
-          >
-            ES
-          </button>
+          <button type="button" className={language === 'es' ? 'active' : ''} onClick={() => onLanguageChange('es')}>ES</button>
         </div>
 
-        <button
-          type="button"
-          className="app-header-signout"
-          onClick={onSignOut}
-        >
+        <button type="button" className="app-header-signout" onClick={onSignOut}>
           <LuLogOut />
           <span>{resolvedSignOut}</span>
         </button>

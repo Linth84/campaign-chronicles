@@ -21,6 +21,7 @@ import {
   LuCalendarDays,
   LuClock3,
   LuFilePenLine,
+  LuShield,
   LuImagePlus,
   LuLayoutDashboard,
   LuMap,
@@ -49,6 +50,7 @@ import NpcsSection from '../components/NpcsSection'
 import OverviewSection from '../components/OverviewSection'
 import TimelineSection from '../components/TimelineSection'
 import RelationshipsSection from '../components/RelationshipsSection'
+import FactionsSection from '../components/FactionsSection'
 import QuickCapture from '../components/QuickCapture'
 import AppHeader from '../components/AppHeader'
 import QuestsSection from '../components/QuestsSection'
@@ -74,6 +76,7 @@ type CampaignSection =
   | 'sessions'
   | 'timeline'
   | 'relationships'
+  | 'factions'
   | 'characters'
   | 'npcs'
   | 'locations'
@@ -90,6 +93,7 @@ const campaignSections:
     'sessions',
     'timeline',
     'relationships',
+    'factions',
     'characters',
     'npcs',
     'locations',
@@ -272,6 +276,9 @@ const translations = {
 
     relationships:
       'Relationships',
+
+    factions:
+      'Factions',
 
     characters:
       'Characters',
@@ -541,6 +548,9 @@ const translations = {
 
     relationships:
       'Relaciones',
+
+    factions:
+      'Facciones',
 
     characters:
       'Personajes',
@@ -1589,6 +1599,7 @@ function CampaignPage({
                   charactersResult,
                   npcsResult,
                   locationsResult,
+                  organizationsResult,
                   questsResult,
                   itemsResult,
                   notesResult,
@@ -1645,6 +1656,16 @@ function CampaignPage({
                       id,
                       name,
                       location_type,
+                      description,
+                      notes
+                    `)
+                    .eq('campaign_id', campaignId),
+                  supabase
+                    .from('organizations')
+                    .select(`
+                      id,
+                      name,
+                      organization_type,
                       description,
                       notes
                     `)
@@ -1709,6 +1730,7 @@ function CampaignPage({
                   charactersResult,
                   npcsResult,
                   locationsResult,
+                  organizationsResult,
                   questsResult,
                   itemsResult,
                   notesResult,
@@ -1873,6 +1895,32 @@ function CampaignPage({
                       subtitle:
                         location.location_type ??
                         location.description ??
+                        '',
+                    })
+                  }
+                }
+
+                for (
+                  const organization
+                  of organizationsResult.data ?? []
+                ) {
+                  if (
+                    matchesSearch(
+                      normalizedTerm,
+                      organization.name,
+                      organization.organization_type,
+                      organization.description,
+                      organization.notes,
+                    )
+                  ) {
+                    matches.push({
+                      id: organization.id,
+                      section: 'factions',
+                      category: t.factions,
+                      title: organization.name,
+                      subtitle:
+                        organization.organization_type ??
+                        organization.description ??
                         '',
                     })
                   }
@@ -2056,6 +2104,7 @@ function CampaignPage({
     campaignRole,
     searchQuery,
     t.characters,
+    t.factions,
     t.gmNotes,
     t.items,
     t.locations,
@@ -2231,6 +2280,17 @@ function CampaignPage({
 
     {
       id:
+        'factions' as CampaignSection,
+
+      label:
+        t.factions,
+
+      icon:
+        LuShield,
+    },
+
+    {
+      id:
         'characters' as CampaignSection,
 
       label:
@@ -2260,7 +2320,6 @@ function CampaignPage({
 
       icon:
         LuMap,
-  LuNetwork,
     },
 
     {
@@ -3400,6 +3459,20 @@ function CampaignPage({
             'relationships' &&
             campaignRole && (
             <RelationshipsSection
+              language={language}
+              campaignId={campaignId}
+              campaignRole={campaignRole}
+            />
+          )}
+
+          {/* =============================================
+              FACCIONES
+              ============================================= */}
+
+          {activeSection ===
+            'factions' &&
+            campaignRole && (
+            <FactionsSection
               language={language}
               campaignId={campaignId}
               campaignRole={campaignRole}

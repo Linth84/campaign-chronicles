@@ -33,6 +33,7 @@ import AboutPage from './pages/AboutPage'
 import FeaturesPage from './pages/FeaturesPage'
 import FaqPage from './pages/FaqPage'
 import SupportPage from './pages/SupportPage'
+import DonationsPage from './pages/DonationsPage'
 
 import './components/MagicCursor'
 
@@ -805,6 +806,7 @@ function AppContent() {
         <Route path="/features" element={<FeaturesPage language={language} />} />
         <Route path="/faq" element={<FaqPage language={language} />} />
         <Route path="/support" element={<SupportPage language={language} />} />
+        <Route path="/donations" element={<DonationsPage language={language} />} />
 
         <Route
           path="/invite"
@@ -883,6 +885,7 @@ function AppContent() {
         <Route path="/features" element={<FeaturesPage language={language} />} />
         <Route path="/faq" element={<FaqPage language={language} />} />
         <Route path="/support" element={<SupportPage language={language} />} />
+        <Route path="/donations" element={<DonationsPage language={language} />} />
 
       <Route
         path="/invite"

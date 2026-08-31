@@ -848,3 +848,43 @@
     max-height: 45%;
   }
 }
+
+
+/* =========================================================
+   RELACIONES — CONEXIÓN DIRECTA ENTRE NODOS
+   ========================================================= */
+
+.cc-rel-handle {
+  width: 10px !important;
+  height: 10px !important;
+  background: #b59658 !important;
+  border: 2px solid #171d26 !important;
+  opacity: .42;
+  transition:
+    opacity .16s ease,
+    transform .16s ease,
+    box-shadow .16s ease;
+}
+
+.cc-rel-node:hover .cc-rel-handle,
+.cc-rel-handle:hover {
+  opacity: 1;
+  transform: scale(1.22);
+  box-shadow: 0 0 0 4px rgba(197, 164, 98, .12);
+}
+
+.cc-rel-stage .react-flow__connection-path {
+  stroke: #d1b36f;
+  stroke-width: 2;
+}
+
+.cc-rel-stage .react-flow__edge-text {
+  pointer-events: none;
+}
+
+.cc-rel-stage .react-flow__edge-textbg {
+  fill: #0d1118;
+  fill-opacity: .96;
+  stroke: rgba(199, 167, 106, .28);
+  stroke-width: 1;
+}

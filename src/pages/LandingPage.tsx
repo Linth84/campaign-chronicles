@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import {
   LuBookOpen,
   LuLogIn,
+  LuHeartHandshake,
   LuUserPlus,
 } from 'react-icons/lu'
 
@@ -60,6 +61,7 @@ const copy = {
     footerAbout: 'About',
     footerFaq: 'FAQ',
     footerSupport: 'Support',
+    footerDonations: 'Support the project',
     terms: 'Terms',
     privacy: 'Privacy',
   },
@@ -106,6 +108,7 @@ const copy = {
     footerAbout: 'Acerca de',
     footerFaq: 'Preguntas frecuentes',
     footerSupport: 'Soporte',
+    footerDonations: 'Apoyar el proyecto',
     terms: 'Términos',
     privacy: 'Privacidad',
   },
@@ -198,6 +201,7 @@ function LandingPage({ language, onOpenAuth }: LandingPageProps) {
           className="landing-footer-legal"
           aria-label="Legal navigation"
         >
+          <a className="landing-footer-support" href="/donations"><LuHeartHandshake />{c.footerDonations}</a>
           <a href="/terms">{c.terms}</a>
           <a href="/privacy">{c.privacy}</a>
         </nav>

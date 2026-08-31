@@ -2,6 +2,7 @@ import { useConfirm } from './ConfirmProvider'
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react'
 
@@ -12,6 +13,7 @@ import type {
 import {
   LuFilePenLine,
   LuMapPin,
+  LuImagePlus,
   LuPlus,
   LuSave,
   LuSearch,
@@ -23,6 +25,11 @@ import {
 import {
   supabase,
 } from '../utils/supabase'
+import {
+  removeCampaignPortrait,
+  resolveCampaignImageUrl,
+  uploadCampaignPortrait,
+} from '../utils/campaignImages'
 
 type Language =
   | 'en'
@@ -57,6 +64,7 @@ interface CampaignNpc {
   status: NpcStatus
   description: string | null
   notes: string | null
+  image_path: string | null
   created_at: string
 }
 
@@ -140,6 +148,11 @@ const translations = {
     allFactions: 'All factions',
     allStatuses: 'All statuses',
     noLocation: 'Unassigned location',
+    portrait: 'Portrait',
+    portraitHelp: 'JPG, PNG or WebP. The image is optimized automatically.',
+    choosePortrait: 'Choose image',
+    removePortrait: 'Remove portrait',
+    imageError: 'We could not process the portrait.',
   },
 
   es: {
@@ -199,6 +212,11 @@ const translations = {
     allFactions: 'Todas las facciones',
     allStatuses: 'Todos los estados',
     noLocation: 'Sin ubicación',
+    portrait: 'Retrato',
+    portraitHelp: 'JPG, PNG o WebP. La imagen se optimiza automáticamente.',
+    choosePortrait: 'Elegir imagen',
+    removePortrait: 'Quitar retrato',
+    imageError: 'No pudimos procesar el retrato.',
   },
 }
 
@@ -264,6 +282,17 @@ function NpcsSection({
     setStatusFilter,
   ] = useState('')
 
+  const [portraitFile, setPortraitFile] =
+    useState<File | null>(null)
+  const [portraitPreview, setPortraitPreview] =
+    useState<string | null>(null)
+  const [removePortrait, setRemovePortrait] =
+    useState(false)
+  const [imageUrls, setImageUrls] =
+    useState<Record<string, string>>({})
+  const portraitInputRef =
+    useRef<HTMLInputElement | null>(null)
+
   useEffect(() => {
     const loadNpcs = async () => {
       setLoading(true)
@@ -288,6 +317,7 @@ function NpcsSection({
                 status,
                 description,
                 notes,
+                image_path,
                 created_at
               `,
             )
@@ -329,6 +359,60 @@ function NpcsSection({
     campaignId,
     t.loadError,
   ])
+
+  useEffect(() => {
+    let cancelled = false
+
+    const loadImageUrls = async () => {
+      const entries = await Promise.all(
+        npcs
+          .filter((npc) => npc.image_path)
+          .map(async (npc) => [
+            npc.id,
+            await resolveCampaignImageUrl(npc.image_path),
+          ] as const),
+      )
+
+      if (!cancelled) {
+        setImageUrls(
+          Object.fromEntries(
+            entries.filter(([, url]) => Boolean(url)),
+          ) as Record<string, string>,
+        )
+      }
+    }
+
+    void loadImageUrls()
+    return () => {
+      cancelled = true
+    }
+  }, [npcs])
+
+  const resetPortraitEditor = () => {
+    if (portraitPreview?.startsWith('blob:')) {
+      URL.revokeObjectURL(portraitPreview)
+    }
+    setPortraitFile(null)
+    setPortraitPreview(null)
+    setRemovePortrait(false)
+    if (portraitInputRef.current) {
+      portraitInputRef.current.value = ''
+    }
+  }
+
+  const choosePortrait = (file: File | null) => {
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      setErrorMessage(t.imageError)
+      return
+    }
+    if (portraitPreview?.startsWith('blob:')) {
+      URL.revokeObjectURL(portraitPreview)
+    }
+    setPortraitFile(file)
+    setPortraitPreview(URL.createObjectURL(file))
+    setRemovePortrait(false)
+  }
 
   const locations =
     useMemo(
@@ -538,6 +622,7 @@ function NpcsSection({
 
   const openNew = () => {
     setEditingId(null)
+    resetPortraitEditor()
     setForm({
       ...emptyNpcForm,
     })
@@ -551,6 +636,10 @@ function NpcsSection({
   ) => {
     setEditingId(
       npc.id,
+    )
+    resetPortraitEditor()
+    setPortraitPreview(
+      imageUrls[npc.id] ?? null,
     )
 
     setForm({
@@ -586,6 +675,7 @@ function NpcsSection({
   const closeEditor = () => {
     setEditorOpen(false)
     setEditingId(null)
+    resetPortraitEditor()
     setForm({
       ...emptyNpcForm,
     })
@@ -665,6 +755,42 @@ function NpcsSection({
             throw error
           }
 
+          let savedNpc =
+            data as CampaignNpc
+
+          if (removePortrait && savedNpc.image_path) {
+            await removeCampaignPortrait(savedNpc.image_path)
+            const { data: cleared, error: clearError } =
+              await supabase
+                .from('npcs')
+                .update({ image_path: null })
+                .eq('id', editingId)
+                .eq('campaign_id', campaignId)
+                .select()
+                .single()
+            if (clearError) throw clearError
+            savedNpc = cleared as CampaignNpc
+          }
+
+          if (portraitFile) {
+            const imagePath = await uploadCampaignPortrait({
+              campaignId,
+              entityType: 'npcs',
+              entityId: editingId,
+              file: portraitFile,
+            })
+            const { data: withImage, error: imageUpdateError } =
+              await supabase
+                .from('npcs')
+                .update({ image_path: imagePath })
+                .eq('id', editingId)
+                .eq('campaign_id', campaignId)
+                .select()
+                .single()
+            if (imageUpdateError) throw imageUpdateError
+            savedNpc = withImage as CampaignNpc
+          }
+
           setNpcs(
             (current) =>
               current
@@ -672,9 +798,7 @@ function NpcsSection({
                   (npc) =>
                     npc.id ===
                     editingId
-                      ? (
-                          data as CampaignNpc
-                        )
+                      ? savedNpc
                       : npc,
                 )
                 .sort(
@@ -702,11 +826,33 @@ function NpcsSection({
             throw error
           }
 
+          let savedNpc =
+            data as CampaignNpc
+
+          if (portraitFile) {
+            const imagePath = await uploadCampaignPortrait({
+              campaignId,
+              entityType: 'npcs',
+              entityId: savedNpc.id,
+              file: portraitFile,
+            })
+            const { data: withImage, error: imageUpdateError } =
+              await supabase
+                .from('npcs')
+                .update({ image_path: imagePath })
+                .eq('id', savedNpc.id)
+                .eq('campaign_id', campaignId)
+                .select()
+                .single()
+            if (imageUpdateError) throw imageUpdateError
+            savedNpc = withImage as CampaignNpc
+          }
+
           setNpcs(
             (current) =>
               [
                 ...current,
-                data as CampaignNpc,
+                savedNpc,
               ].sort(
                 sortByName,
               ),
@@ -719,6 +865,7 @@ function NpcsSection({
 
         setEditorOpen(false)
         setEditingId(null)
+        resetPortraitEditor()
         setForm({
           ...emptyNpcForm,
         })
@@ -751,6 +898,12 @@ function NpcsSection({
       setSuccessMessage('')
 
       try {
+        const npcToDelete =
+          npcs.find((npc) => npc.id === npcId)
+        if (npcToDelete?.image_path) {
+          await removeCampaignPortrait(npcToDelete.image_path)
+        }
+
         const {
           error,
         } =
@@ -851,6 +1004,57 @@ function NpcsSection({
               closeEditor
             }
           />
+
+          <div className="campaign-portrait-editor">
+            <div className="campaign-portrait-preview">
+              {portraitPreview && !removePortrait ? (
+                <img src={portraitPreview} alt="" />
+              ) : (
+                <LuUsers aria-hidden="true" />
+              )}
+            </div>
+            <div className="campaign-portrait-copy">
+              <strong>{t.portrait}</strong>
+              <span>{t.portraitHelp}</span>
+              <div className="campaign-portrait-actions">
+                <input
+                  ref={portraitInputRef}
+                  className="campaign-portrait-input"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={(event) =>
+                    choosePortrait(event.target.files?.[0] ?? null)
+                  }
+                />
+                <button
+                  type="button"
+                  className="campaign-portrait-button"
+                  onClick={() => portraitInputRef.current?.click()}
+                >
+                  <LuImagePlus />
+                  {t.choosePortrait}
+                </button>
+                {(portraitPreview || (editingId &&
+                  npcs.find((item) => item.id === editingId)?.image_path)) && (
+                  <button
+                    type="button"
+                    className="campaign-portrait-button campaign-portrait-button--danger"
+                    onClick={() => {
+                      if (portraitPreview?.startsWith('blob:')) {
+                        URL.revokeObjectURL(portraitPreview)
+                      }
+                      setPortraitFile(null)
+                      setPortraitPreview(null)
+                      setRemovePortrait(true)
+                    }}
+                  >
+                    <LuTrash2 />
+                    {t.removePortrait}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
 
           <div className="session-editor-grid">
             <TextField
@@ -1355,6 +1559,17 @@ function NpcsSection({
                                   npc.id
                                 }
                               >
+                                <div className="campaign-card-portrait">
+                                  {imageUrls[npc.id] ? (
+                                    <img
+                                      src={imageUrls[npc.id]}
+                                      alt={npc.name}
+                                    />
+                                  ) : (
+                                    <LuUsers aria-hidden="true" />
+                                  )}
+                                </div>
+
                                 <CardActions
                                   onEdit={() =>
                                     openEdit(
