@@ -1,0 +1,626 @@
+/* =========================================================
+   CAMPAIGN CHRONICLE — ESTILOS GLOBALES
+   ========================================================= */
+
+
+/* ---------------------------------------------------------
+   1. FUENTES
+   --------------------------------------------------------- */
+
+/* Fuente principal para títulos y branding */
+@font-face {
+  font-family: 'Marcellus';
+  src: url('/fonts/Marcellus-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Fuente de interfaz — peso regular */
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/Inter-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Fuente de interfaz — peso medio */
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/Inter-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Fuente de interfaz — semibold */
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/Inter-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Fuente de interfaz — black */
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/Inter-Black.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+
+/* ---------------------------------------------------------
+   2. VARIABLES GLOBALES
+   --------------------------------------------------------- */
+
+:root {
+  /* Tipografías */
+  --fuente-titulos: 'Marcellus', Georgia, serif;
+  --fuente-interfaz: 'Inter', system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', sans-serif;
+
+  /* Colores base */
+  --color-fondo: #0d0f14;
+  --color-fondo-secundario: #141821;
+  --color-superficie: #191e29;
+  --color-superficie-hover: #202633;
+
+  /* Texto */
+  --color-texto-principal: #f3efe5;
+  --color-texto-secundario: #aaa79f;
+  --color-texto-suave: #73757d;
+
+  /* Acentos */
+  --color-dorado: #c7a76a;
+  --color-dorado-claro: #dfc38a;
+  --color-dorado-suave: rgba(199, 167, 106, 0.12);
+
+  /* Bordes */
+  --color-borde: rgba(255, 255, 255, 0.08);
+  --color-borde-dorado: rgba(199, 167, 106, 0.35);
+
+  /* Estados */
+  --color-exito: #7eb58a;
+  --color-error: #c96f6f;
+  --color-advertencia: #d0a45c;
+
+  /* Sombras */
+  --sombra-suave:
+    0 12px 30px rgba(0, 0, 0, 0.22);
+
+  --sombra-fuerte:
+    0 20px 60px rgba(0, 0, 0, 0.38);
+
+  /* Bordes redondeados */
+  --radio-pequeno: 8px;
+  --radio-medio: 14px;
+  --radio-grande: 20px;
+
+  /* Transiciones */
+  --transicion-rapida: 150ms ease;
+  --transicion-normal: 250ms ease;
+
+  /* Configuración general de texto */
+  font-family: var(--fuente-interfaz);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  color: var(--color-texto-principal);
+  background: var(--color-fondo);
+}
+
+
+/* ---------------------------------------------------------
+   3. RESET GENERAL
+   --------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  margin: 0;
+  padding: 0;
+  min-width: 320px;
+  min-height: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-width: 320px;
+  min-height: 100vh;
+
+  font-family: var(--fuente-interfaz);
+  color: var(--color-texto-principal);
+  background: var(--color-fondo);
+}
+
+
+/* ---------------------------------------------------------
+   4. CONTENEDOR PRINCIPAL DE REACT
+   --------------------------------------------------------- */
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+
+/* ---------------------------------------------------------
+   5. TIPOGRAFÍA GENERAL
+   --------------------------------------------------------- */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin-top: 0;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--fuente-titulos);
+  font-weight: 400;
+  color: var(--color-texto-principal);
+}
+
+p {
+  line-height: 1.6;
+  color: var(--color-texto-secundario);
+}
+
+strong {
+  font-weight: 600;
+}
+
+
+/* ---------------------------------------------------------
+   6. ENLACES
+   --------------------------------------------------------- */
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: none;
+}
+
+
+/* ---------------------------------------------------------
+   7. BOTONES Y CAMPOS DE FORMULARIO
+   --------------------------------------------------------- */
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  color: inherit;
+  background: none;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+input,
+textarea,
+select {
+  color: var(--color-texto-principal);
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-pequeno);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-texto-suave);
+}
+
+
+/* ---------------------------------------------------------
+   8. IMÁGENES E ÍCONOS
+   --------------------------------------------------------- */
+
+img,
+svg {
+  display: block;
+}
+
+img {
+  max-width: 100%;
+}
+
+
+/* ---------------------------------------------------------
+   9. SELECCIÓN DE TEXTO
+   --------------------------------------------------------- */
+
+::selection {
+  color: var(--color-fondo);
+  background: var(--color-dorado-claro);
+}
+
+
+/* ---------------------------------------------------------
+   10. SCROLLBAR
+   --------------------------------------------------------- */
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-fondo);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2c313d;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3a414f;
+}
+
+
+/* ---------------------------------------------------------
+   11. ACCESIBILIDAD — FOCO DE TECLADO
+   --------------------------------------------------------- */
+
+:focus-visible {
+  outline: 2px solid var(--color-dorado);
+  outline-offset: 3px;
+}
+
+
+/* ---------------------------------------------------------
+   12. UTILIDADES BÁSICAS
+   --------------------------------------------------------- */
+
+.texto-titulo {
+  font-family: var(--fuente-titulos);
+}
+
+.texto-dorado {
+  color: var(--color-dorado);
+}
+
+.texto-secundario {
+  color: var(--color-texto-secundario);
+}
+
+.texto-suave {
+  color: var(--color-texto-suave);
+}
+
+
+/* ---------------------------------------------------------
+   13. RESPONSIVE GLOBAL
+   --------------------------------------------------------- */
+
+@media (max-width: 768px) {
+  body {
+    font-size: 15px;
+  }
+}
+
+
+/* ---------------------------------------------------------
+   14. CURSOR MÁGICO GLOBAL
+   --------------------------------------------------------- */
+
+/*
+   El cursor personalizado se activa únicamente en dispositivos
+   con puntero preciso (mouse / trackpad). En pantallas táctiles
+   se conserva el comportamiento nativo.
+*/
+
+@media (pointer: fine) {
+  html,
+  body,
+  a,
+  button,
+  label[for],
+  select,
+  summary,
+  [role='button'],
+  .campaign-overview-stat-card {
+    cursor: none !important;
+  }
+
+  input,
+  textarea,
+  [contenteditable='true'] {
+    cursor: text !important;
+  }
+
+  button:disabled,
+  [aria-disabled='true'] {
+    cursor: none !important;
+  }
+
+  .magic-cursor {
+    position: fixed;
+    z-index: 2147483647;
+
+    left: 0;
+    top: 0;
+
+    width: 22px;
+    height: 28px;
+
+    pointer-events: none;
+
+    opacity: 0;
+
+    transform:
+      translate3d(-100px, -100px, 0);
+
+    transition:
+      opacity 120ms ease,
+      filter 140ms ease;
+
+    will-change:
+      transform;
+
+    filter:
+      drop-shadow(
+        0 0 3px rgba(223, 195, 138, 0.32)
+      );
+  }
+
+  /*
+     Flecha clásica estilizada:
+     mantiene la forma reconocible del puntero tradicional,
+     con borde dorado, interior oscuro y un glow muy sutil.
+  */
+  .magic-cursor::before {
+    content: '';
+
+    position: absolute;
+
+    left: 0;
+    top: 0;
+
+    width: 18px;
+    height: 24px;
+
+    background:
+      var(--color-dorado-claro);
+
+    clip-path:
+      polygon(
+        0 0,
+        0 84%,
+        5px 68%,
+        9px 91%,
+        13px 89%,
+        9px 66%,
+        17px 66%
+      );
+  }
+
+  .magic-cursor::after {
+    content: '';
+
+    position: absolute;
+
+    left: 2px;
+    top: 3px;
+
+    width: 13px;
+    height: 17px;
+
+    background:
+      #11141b;
+
+    clip-path:
+      polygon(
+        0 0,
+        0 69%,
+        4px 57%,
+        8px 79%,
+        9px 78%,
+        5px 55%,
+        12px 55%
+      );
+
+    transition:
+      background 140ms ease;
+  }
+
+  .magic-cursor-visible {
+    opacity: 1;
+  }
+
+  .magic-cursor-interactive {
+    filter:
+      drop-shadow(
+        0 0 5px rgba(223, 195, 138, 0.58)
+      );
+  }
+
+  .magic-cursor-interactive::after {
+    background:
+      #17191f;
+  }
+
+  .magic-cursor-pressed {
+    filter:
+      drop-shadow(
+        0 0 3px rgba(223, 195, 138, 0.7)
+      );
+  }
+
+  /* Capa que contiene las partículas sin bloquear clics. */
+  .magic-cursor-particles {
+    position: fixed;
+    z-index: 2147483646;
+
+    inset: 0;
+
+    overflow: hidden;
+
+    pointer-events: none;
+  }
+
+  .magic-cursor-particle {
+    position: absolute;
+
+    pointer-events: none;
+
+    transform:
+      translate(-50%, -50%);
+
+    animation:
+      magic-cursor-particle-fade
+      650ms
+      ease-out
+      forwards;
+
+    will-change:
+      transform,
+      opacity;
+  }
+
+  .magic-cursor-particle-spark {
+    width: 2px;
+    height: 2px;
+
+    border-radius: 50%;
+
+    background:
+      var(--color-dorado-claro);
+
+    box-shadow:
+      0 0 6px rgba(223, 195, 138, 0.85);
+  }
+
+  .magic-cursor-particle-dust {
+    width: 3px;
+    height: 3px;
+
+    border-radius: 50%;
+
+    background:
+      rgba(199, 167, 106, 0.72);
+
+    box-shadow:
+      0 0 4px rgba(199, 167, 106, 0.42);
+  }
+
+  .magic-cursor-particle-diamond {
+    width: 3px;
+    height: 3px;
+
+    border:
+      1px solid rgba(223, 195, 138, 0.8);
+
+    transform:
+      translate(-50%, -50%)
+      rotate(45deg);
+  }
+
+  @keyframes magic-cursor-particle-fade {
+    0% {
+      opacity: 0.95;
+
+      transform:
+        translate(-50%, -50%)
+        scale(1);
+    }
+
+    100% {
+      opacity: 0;
+
+      transform:
+        translate(
+          calc(
+            -50% +
+            var(--magic-drift-x)
+          ),
+          calc(
+            -50% +
+            var(--magic-drift-y)
+          )
+        )
+        scale(0.25)
+        rotate(55deg);
+    }
+  }
+}
+
+@media (pointer: coarse) {
+  .magic-cursor,
+  .magic-cursor-particles {
+    display: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .magic-cursor-particle {
+    display: none !important;
+  }
+}
+
+/* =========================================================
+   SOPORTE — ESTADOS Y ANTIBOT
+   Agregar al CSS público actual si preferís no importar
+   un archivo CSS adicional.
+   ========================================================= */
+
+.support-honeypot {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.public-support-notice-success {
+  color: #b9d7b4;
+}
+
+.public-support-notice-error {
+  color: #e4a7a7;
+}
+
+.support-submit-spinner {
+  animation: support-spin 0.8s linear infinite;
+}
+
+@keyframes support-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

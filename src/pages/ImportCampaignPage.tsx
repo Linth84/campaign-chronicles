@@ -15,9 +15,10 @@ import {
 import {
   downloadCampaignTemplateDocx,
   downloadCampaignTemplatePdf,
-  parseCampaignImportTemplate,
   readCampaignFile,
 } from '../utils/campaignFiles'
+
+import { parseCampaignImport } from '../utils/compactCampaignImport'
 
 import {
   supabase,
@@ -142,6 +143,15 @@ const translations = {
     notes:
       'Notes',
 
+    factions:
+      'Factions',
+
+    relationships:
+      'Relationships',
+
+    timeline:
+      'Timeline',
+
     nothing:
       'Add some text or choose a document first.',
 
@@ -180,6 +190,8 @@ const translations = {
 
     roleRequired:
       'Choose your role in this campaign.',
+    playerImportNotice:
+      'Player mode imports the shared chronicle you know, without granting GM permissions. Content marked GM-only is skipped.',
   },
 
   es: {
@@ -273,6 +285,15 @@ const translations = {
     notes:
       'Notas',
 
+    factions:
+      'Facciones',
+
+    relationships:
+      'Relaciones',
+
+    timeline:
+      'Línea de tiempo',
+
     nothing:
       'Primero pega texto o elige un documento.',
 
@@ -311,6 +332,8 @@ const translations = {
 
     roleRequired:
       'Elige tu rol en esta campaña.',
+    playerImportNotice:
+      'El modo Jugador importa la crónica compartida que conocés, sin darte permisos de GM. El contenido marcado como Solo GM se omite.',
   },
 }
 
@@ -388,7 +411,7 @@ function ImportCampaignPage({
     useState('')
 
   const parsedImport =
-    parseCampaignImportTemplate(
+    parseCampaignImport(
       sourceText,
     )
 
@@ -469,7 +492,7 @@ function ImportCampaignPage({
         )
 
         const parsed =
-          parseCampaignImportTemplate(
+          parseCampaignImport(
             text,
           )
 
@@ -533,7 +556,7 @@ function ImportCampaignPage({
       event.preventDefault()
 
       if (
-        !campaignName.trim() ||
+        !(campaignName.trim() || parsedImport.campaign.name.trim()) ||
         !sourceText.trim()
       ) {
         setErrorMessage(
@@ -578,7 +601,7 @@ function ImportCampaignPage({
         }
 
         const parsed =
-          parseCampaignImportTemplate(
+          parseCampaignImport(
             sourceText,
           )
 
@@ -596,6 +619,7 @@ function ImportCampaignPage({
                 userData.user.id,
 
               name:
+                parsed.campaign.name.trim() ||
                 campaignName.trim(),
 
               system:
@@ -755,12 +779,9 @@ function ImportCampaignPage({
                         npc.role,
                       faction:
                         npc.faction,
-                      ...(npc.status
-                        ? {
-                            status:
-                              npc.status,
-                          }
-                        : {}),
+                      status:
+                        npc.status ||
+                        'unknown',
                       description:
                         npc.description,
                       notes:
@@ -916,6 +937,122 @@ function ImportCampaignPage({
               throw error
             }
           }
+          const importableFactions = parsed.factions.filter(
+            (faction) => campaignRole === 'gm' || faction.visibility !== 'gm_only',
+          )
+          if (importableFactions.length > 0) {
+            const { error } = await supabase.from('organizations').insert(
+              importableFactions.map((faction) => ({
+                campaign_id: campaign.id,
+                name: faction.name,
+                organization_type: faction.organization_type,
+                description: faction.description,
+                notes: faction.notes,
+                visibility: campaignRole === 'gm' ? faction.visibility : 'shared',
+                created_by: userData.user.id,
+              })),
+            )
+            if (error) throw error
+          }
+
+          if (parsed.timeline.length > 0) {
+            const { error } = await supabase.from('timeline_events').insert(
+              parsed.timeline.map((timelineEvent, index) => ({
+                campaign_id: campaign.id,
+                created_by: userData.user.id,
+                title: timelineEvent.title,
+                description: timelineEvent.description,
+                event_type: timelineEvent.event_type,
+                calendar_date: timelineEvent.calendar_date,
+                time_label: timelineEvent.time_label,
+                sort_order: index,
+              })),
+            )
+            if (error) throw error
+          }
+
+          if (parsed.relationships.length > 0) {
+            const entityConfigs = [
+              ['character', 'characters', 'name'],
+              ['npc', 'npcs', 'name'],
+              ['location', 'locations', 'name'],
+              ['organization', 'organizations', 'name'],
+              ['quest', 'quests', 'title'],
+              ['item', 'items', 'name'],
+            ] as const
+            const entityIds = new Map<string, string>()
+            const gmOnlyOrganizations = new Set<string>()
+
+            for (const [type, table, label] of entityConfigs) {
+              const selectFields =
+                type === 'organization'
+                  ? `id,${label},visibility`
+                  : `id,${label}`
+
+              const { data, error } = await supabase
+                .from(table)
+                .select(selectFields)
+                .eq('campaign_id', campaign.id)
+
+              if (error) throw error
+
+              for (const row of data ?? []) {
+                const typedRow = row as unknown as Record<string, unknown>
+                const entityLabel = String(typedRow[label] ?? '')
+                  .trim()
+                  .toLocaleLowerCase()
+
+                if (!entityLabel) continue
+
+                const key = `${type}:${entityLabel}`
+                entityIds.set(key, String(typedRow.id))
+
+                if (
+                  type === 'organization' &&
+                  typedRow.visibility === 'gm_only'
+                ) {
+                  gmOnlyOrganizations.add(String(typedRow.id))
+                }
+              }
+            }
+
+            const rows = parsed.relationships.flatMap((relationship) => {
+              if (campaignRole === 'player' && relationship.visibility === 'gm_only') return []
+
+              const sourceId = entityIds.get(`${relationship.source_type}:${relationship.source_name.trim().toLocaleLowerCase()}`)
+              const targetId = entityIds.get(`${relationship.target_type}:${relationship.target_name.trim().toLocaleLowerCase()}`)
+              if (!sourceId || !targetId) return []
+
+              const touchesGmOnlyOrganization =
+                (relationship.source_type === 'organization' && gmOnlyOrganizations.has(sourceId)) ||
+                (relationship.target_type === 'organization' && gmOnlyOrganizations.has(targetId))
+
+              const visibility =
+                campaignRole === 'gm'
+                  ? touchesGmOnlyOrganization
+                    ? 'gm_only'
+                    : relationship.visibility
+                  : 'shared'
+
+              return [{
+                campaign_id: campaign.id,
+                source_type: relationship.source_type,
+                source_id: sourceId,
+                target_type: relationship.target_type,
+                target_id: targetId,
+                relationship_type: relationship.relationship_type,
+                notes: relationship.notes,
+                visibility,
+                created_by: userData.user.id,
+              }]
+            })
+
+            if (rows.length > 0) {
+              const { error } = await supabase.from('campaign_relationships').insert(rows)
+              if (error) throw error
+            }
+          }
+
         } else {
           const {
             error: noteError,
@@ -1170,6 +1307,12 @@ function ImportCampaignPage({
                 </span>
               </label>
             </div>
+
+            {campaignRole === 'player' && (
+              <p className="campaign-role-help">
+                {t.playerImportNotice}
+              </p>
+            )}
           </fieldset>
 
           {/* =============================================
@@ -1380,6 +1523,10 @@ function ImportCampaignPage({
                       parsedImport.notes.length
                     }
                   </p>
+
+                  <p>{t.factions}: {parsedImport.factions.length}</p>
+                  <p>{t.relationships}: {parsedImport.relationships.length}</p>
+                  <p>{t.timeline}: {parsedImport.timeline.length}</p>
                 </div>
               ) : (
                 <div className="import-preview-content">

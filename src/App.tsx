@@ -24,6 +24,7 @@ import TermsPage from './pages/TermsPage'
 import PrivacyPage from './pages/PrivacyPage'
 import CreateCampaignPage from './pages/CreateCampaignPage'
 import ImportCampaignPage from './pages/ImportCampaignPage'
+import UpdateCampaignPage from './pages/UpdateCampaignPage'
 import CampaignPage from './pages/CampaignPage'
 import ProfilePage from './pages/ProfilePage'
 import EmailVerifiedPage from './pages/EmailVerifiedPage'
@@ -34,6 +35,10 @@ import FeaturesPage from './pages/FeaturesPage'
 import FaqPage from './pages/FaqPage'
 import SupportPage from './pages/SupportPage'
 import DonationsPage from './pages/DonationsPage'
+import DeveloperBlogPage from './pages/DeveloperBlogPage'
+import TutorialsPage from './pages/TutorialsPage'
+import PlayerViewPage from './pages/PlayerViewPage'
+import OnboardingModal from './components/OnboardingModal'
 
 import './components/MagicCursor'
 
@@ -292,6 +297,16 @@ function AppContent() {
     useState(false)
 
   const [
+    onboardingOpen,
+    setOnboardingOpen,
+  ] = useState(false)
+
+  const [
+    onboardingPhase,
+    setOnboardingPhase,
+  ] = useState<'dashboard' | 'campaign'>('dashboard')
+
+  const [
     emailVerificationSuccess,
     setEmailVerificationSuccess,
   ] =
@@ -413,6 +428,88 @@ function AppContent() {
   }, [
     navigate,
   ])
+
+  /* =======================================================
+     ONBOARDING GUIADO
+     ======================================================= */
+
+  useEffect(() => {
+    if (!session?.user?.id || sessionLoading || passwordRecovery || emailVerificationSuccess) return
+
+    const storageKey = `campaign-chronicles-onboarding-v3:${session.user.id}`
+    let state: string | null = null
+
+    try {
+      state = localStorage.getItem(storageKey)
+    } catch (error) {
+      console.warn('Could not read onboarding state:', error)
+    }
+
+    if (state === 'completed') return
+
+    const isDashboard = location.pathname === '/dashboard'
+    const isCampaign = /^\/campaign\/[^/]+\/(?!update(?:\/|$))/.test(location.pathname)
+
+    // Phase one lives on the real dashboard. Once it is finished, the tour
+    // waits until the user actually opens a campaign and resumes there.
+    if (!state && isDashboard) {
+      const timer = window.setTimeout(() => {
+        setOnboardingPhase('dashboard')
+        setOnboardingOpen(true)
+      }, 220)
+      return () => window.clearTimeout(timer)
+    }
+
+    if ((state === 'campaign' || (!state && isCampaign)) && isCampaign) {
+      const timer = window.setTimeout(() => {
+        setOnboardingPhase('campaign')
+        setOnboardingOpen(true)
+      }, 320)
+      return () => window.clearTimeout(timer)
+    }
+  }, [emailVerificationSuccess, location.pathname, passwordRecovery, session?.user?.id, sessionLoading])
+
+  const closeOnboarding = () => {
+    if (session?.user?.id) {
+      try {
+        localStorage.setItem(`campaign-chronicles-onboarding-v3:${session.user.id}`, 'completed')
+      } catch (error) {
+        console.warn('Could not save onboarding state:', error)
+      }
+    }
+    setOnboardingOpen(false)
+  }
+
+  const completeOnboardingPhase = (phase: 'dashboard' | 'campaign') => {
+    if (!session?.user?.id) {
+      setOnboardingOpen(false)
+      return
+    }
+
+    try {
+      localStorage.setItem(
+        `campaign-chronicles-onboarding-v3:${session.user.id}`,
+        phase === 'dashboard' ? 'campaign' : 'completed',
+      )
+    } catch (error) {
+      console.warn('Could not save onboarding state:', error)
+    }
+
+    setOnboardingOpen(false)
+  }
+
+  const openOnboarding = () => {
+    if (session?.user?.id) {
+      try {
+        localStorage.removeItem(`campaign-chronicles-onboarding-v3:${session.user.id}`)
+      } catch (error) {
+        console.warn('Could not reset onboarding state:', error)
+      }
+    }
+    setOnboardingPhase('dashboard')
+    navigate('/dashboard')
+    window.setTimeout(() => setOnboardingOpen(true), 220)
+  }
 
   /* =======================================================
      REDIRECCIÓN DESPUÉS DEL LOGIN
@@ -669,6 +766,7 @@ function AppContent() {
 
   if (session) {
     return (
+      <>
       <Routes>
         <Route
           path="/dashboard"
@@ -771,6 +869,31 @@ function AppContent() {
           }
         />
 
+
+        <Route
+          path="/campaign/:campaignId/update"
+          element={
+            <UpdateCampaignPage
+              language={language}
+              onLanguageChange={changeLanguage}
+              onOpenProfile={openProfile}
+              onSignOut={handleSignOut}
+            />
+          }
+        />
+
+        <Route
+          path="/campaign/:campaignId/player-view"
+          element={
+            <PlayerViewPage
+              language={language}
+              onLanguageChange={changeLanguage}
+              onOpenProfile={openProfile}
+              onSignOut={handleSignOut}
+            />
+          }
+        />
+
         <Route
           path="/campaign/:campaignId"
           element={
@@ -807,6 +930,8 @@ function AppContent() {
         <Route path="/faq" element={<FaqPage language={language} />} />
         <Route path="/support" element={<SupportPage language={language} />} />
         <Route path="/donations" element={<DonationsPage language={language} />} />
+        <Route path="/developer-blog" element={<DeveloperBlogPage language={language} />} />
+        <Route path="/tutorials" element={<TutorialsPage language={language} onOpenOnboarding={openOnboarding} />} />
 
         <Route
           path="/invite"
@@ -839,6 +964,8 @@ function AppContent() {
           }
         />
       </Routes>
+      <OnboardingModal language={language} open={onboardingOpen} phase={onboardingPhase} onClose={closeOnboarding} onPhaseComplete={completeOnboardingPhase} />
+      </>
     )
   }
 
@@ -886,6 +1013,8 @@ function AppContent() {
         <Route path="/faq" element={<FaqPage language={language} />} />
         <Route path="/support" element={<SupportPage language={language} />} />
         <Route path="/donations" element={<DonationsPage language={language} />} />
+        <Route path="/developer-blog" element={<DeveloperBlogPage language={language} />} />
+        <Route path="/tutorials" element={<TutorialsPage language={language} />} />
 
       <Route
         path="/invite"

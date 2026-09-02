@@ -1344,6 +1344,7 @@ function DashboardPage({
             <button
               type="button"
               className="dashboard-primary-action"
+              data-tour="create-campaign"
               onClick={
                 onCreateCampaign
               }
@@ -1360,6 +1361,7 @@ function DashboardPage({
             <button
               type="button"
               className="dashboard-secondary-action"
+              data-tour="import-campaign"
               onClick={
                 onImportCampaign
               }
@@ -1545,7 +1547,7 @@ function DashboardPage({
             ================================================= */}
 
         {loading && (
-          <section className="dashboard-empty">
+          <section className="dashboard-empty" data-tour="campaign-list">
             <div className="dashboard-loading-symbol" />
 
             <p>
@@ -1561,7 +1563,7 @@ function DashboardPage({
         {!loading &&
           campaigns.length ===
             0 && (
-            <section className="dashboard-empty">
+            <section className="dashboard-empty" data-tour="campaign-list">
               <div className="dashboard-empty-icon">
                 <LuBookOpen />
               </div>
@@ -1587,7 +1589,7 @@ function DashboardPage({
         {!loading &&
           campaigns.length >
             0 && (
-            <section className="campaign-grid">
+            <section className="campaign-grid" data-tour="campaign-list">
               {campaigns.map(
                 (
                   campaign,

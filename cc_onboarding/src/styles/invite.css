@@ -1,0 +1,445 @@
+/* =========================================================
+   INVITACIÓN — PÁGINA PÚBLICA
+   ========================================================= */
+
+.invite-page {
+  width: 100%;
+  min-height: 100vh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 32px 20px;
+
+  background:
+    radial-gradient(
+      circle at top,
+      rgba(199, 167, 106, 0.09),
+      transparent 34%
+    ),
+    var(--color-fondo);
+}
+
+.invite-card {
+  position: relative;
+  overflow: hidden;
+
+  width: 100%;
+  max-width: 540px;
+
+  padding: 42px 42px 36px;
+
+  text-align: center;
+
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(199, 167, 106, 0.11),
+      transparent 40%
+    ),
+    var(--color-fondo-secundario);
+
+  border: 1px solid
+    rgba(199, 167, 106, 0.24);
+
+  border-radius:
+    var(--radio-grande);
+
+  box-shadow:
+    var(--sombra-fuerte),
+    0 0 72px
+      rgba(199, 167, 106, 0.05);
+}
+
+.invite-card::before,
+.invite-card::after {
+  content: '';
+
+  position: absolute;
+
+  width: 130px;
+  height: 130px;
+
+  pointer-events: none;
+
+  opacity: 0.28;
+}
+
+.invite-card::before {
+  top: -66px;
+  left: -66px;
+
+  border-right:
+    1px solid
+    var(--color-borde-dorado);
+
+  border-bottom:
+    1px solid
+    var(--color-borde-dorado);
+
+  transform:
+    rotate(45deg);
+}
+
+.invite-card::after {
+  right: -66px;
+  bottom: -66px;
+
+  border-top:
+    1px solid
+    var(--color-borde-dorado);
+
+  border-left:
+    1px solid
+    var(--color-borde-dorado);
+
+  transform:
+    rotate(45deg);
+}
+
+
+/* ---------------------------------------------------------
+   Logo
+   --------------------------------------------------------- */
+
+.invite-logo {
+  position: relative;
+  z-index: 1;
+
+  width: min(300px, 82%);
+  height: auto;
+
+  display: block;
+
+  margin: 0 auto 24px;
+
+  filter:
+    drop-shadow(
+      0 0 18px
+      rgba(199, 167, 106, 0.12)
+    );
+}
+
+
+/* ---------------------------------------------------------
+   Sello
+   --------------------------------------------------------- */
+
+.invite-seal {
+  position: relative;
+  z-index: 1;
+
+  width: 68px;
+  height: 68px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: 0 auto 20px;
+
+  color:
+    var(--color-dorado-claro);
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(199, 167, 106, 0.15),
+      rgba(199, 167, 106, 0.04)
+    );
+
+  border:
+    1px solid
+    var(--color-borde-dorado);
+
+  border-radius: 50%;
+
+  box-shadow:
+    0 0 0 7px
+      rgba(199, 167, 106, 0.025),
+    0 0 30px
+      rgba(199, 167, 106, 0.08);
+}
+
+.invite-seal svg {
+  width: 28px;
+  height: 28px;
+}
+
+
+/* ---------------------------------------------------------
+   Encabezado
+   --------------------------------------------------------- */
+
+.invite-heading {
+  position: relative;
+  z-index: 1;
+
+  margin-bottom: 26px;
+}
+
+.invite-eyebrow {
+  margin: 0 0 9px;
+
+  font-family:
+    var(--fuente-titulos);
+
+  font-size: 12px;
+
+  color:
+    var(--color-dorado);
+
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.invite-heading h1 {
+  margin: 0 0 12px;
+
+  font-size:
+    clamp(
+      32px,
+      6vw,
+      42px
+    );
+
+  line-height: 1.16;
+}
+
+.invite-heading > p:last-child {
+  max-width: 430px;
+
+  margin: 0 auto;
+
+  font-size: 15px;
+  line-height: 1.7;
+
+  color:
+    var(--color-texto-secundario);
+}
+
+
+/* ---------------------------------------------------------
+   Información para crear cuenta
+   --------------------------------------------------------- */
+
+.invite-account-panel {
+  position: relative;
+  z-index: 1;
+
+  margin-bottom: 20px;
+  padding: 18px 20px;
+
+  text-align: left;
+
+  background:
+    rgba(255, 255, 255, 0.025);
+
+  border:
+    1px solid
+    var(--color-borde);
+
+  border-radius:
+    var(--radio-medio);
+}
+
+.invite-account-panel h2 {
+  margin: 0 0 7px;
+
+  font-family:
+    var(--fuente-interfaz);
+
+  font-size: 14px;
+  font-weight: 600;
+
+  color:
+    var(--color-texto-principal);
+}
+
+.invite-account-panel p {
+  margin: 0;
+
+  font-size: 13px;
+  line-height: 1.65;
+
+  color:
+    var(--color-texto-secundario);
+}
+
+
+/* ---------------------------------------------------------
+   Acciones
+   --------------------------------------------------------- */
+
+.invite-primary-button,
+.invite-secondary-button {
+  position: relative;
+  z-index: 1;
+
+  width: 100%;
+  min-height: 48px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 9px;
+
+  padding: 0 20px;
+
+  font-weight: 600;
+
+  border-radius:
+    var(--radio-pequeno);
+
+  transition:
+    color var(--transicion-rapida),
+    background var(--transicion-rapida),
+    border-color var(--transicion-rapida),
+    transform var(--transicion-rapida);
+}
+
+.invite-primary-button {
+  color: #101114;
+
+  background:
+    var(--color-dorado);
+}
+
+.invite-primary-button:hover {
+  background:
+    var(--color-dorado-claro);
+
+  transform:
+    translateY(-1px);
+}
+
+.invite-secondary-button {
+  color:
+    var(--color-dorado-claro);
+
+  background:
+    var(--color-dorado-suave);
+
+  border:
+    1px solid
+    var(--color-borde-dorado);
+}
+
+.invite-secondary-button:hover {
+  color:
+    var(--color-texto-principal);
+
+  background:
+    rgba(199, 167, 106, 0.16);
+
+  transform:
+    translateY(-1px);
+}
+
+.invite-primary-button svg,
+.invite-secondary-button svg {
+  width: 18px;
+  height: 18px;
+
+  flex-shrink: 0;
+}
+
+
+/* ---------------------------------------------------------
+   Separador
+   --------------------------------------------------------- */
+
+.invite-divider {
+  position: relative;
+  z-index: 1;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  margin: 18px 0;
+
+  color:
+    var(--color-texto-suave);
+
+  font-size: 12px;
+}
+
+.invite-divider::before,
+.invite-divider::after {
+  content: '';
+
+  height: 1px;
+
+  flex: 1;
+
+  background:
+    var(--color-borde);
+}
+
+.invite-divider span {
+  flex-shrink: 0;
+}
+
+
+/* ---------------------------------------------------------
+   Nota inferior
+   --------------------------------------------------------- */
+
+.invite-note {
+  position: relative;
+  z-index: 1;
+
+  margin: 18px 0 0;
+
+  font-size: 11px;
+  line-height: 1.55;
+
+  color:
+    var(--color-texto-suave);
+}
+
+
+/* =========================================================
+   INVITACIÓN — RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 520px) {
+  .invite-page {
+    padding: 18px;
+  }
+
+  .invite-card {
+    padding:
+      34px 22px
+      28px;
+  }
+
+  .invite-logo {
+    width:
+      min(
+        250px,
+        82%
+      );
+
+    margin-bottom: 21px;
+  }
+
+  .invite-seal {
+    width: 62px;
+    height: 62px;
+
+    margin-bottom: 20px;
+  }
+
+  .invite-heading h1 {
+    font-size: 31px;
+  }
+
+  .invite-account-panel {
+    padding: 16px;
+  }
+}

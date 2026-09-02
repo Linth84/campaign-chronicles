@@ -25,6 +25,7 @@ import {
   LuImagePlus,
   LuLayoutDashboard,
   LuMap,
+  LuMapPinned,
   LuNetwork,
   LuLock,
   LuNotebookPen,
@@ -37,6 +38,12 @@ import {
   LuTrash2,
   LuUsers,
   LuX,
+  LuChevronRight,
+  LuEyeOff,
+  LuLightbulb,
+  LuListTree,
+  LuMonitor,
+  LuRefreshCw,
 } from 'react-icons/lu'
 
 import CharactersSection from '../components/CharactersSection'
@@ -45,6 +52,8 @@ import LocationsSection from '../components/LocationsSection'
 import NotesSection from '../components/NotesSection'
 import MyNotesSection from '../components/MyNotesSection'
 import GmNotesSection from '../components/GmNotesSection'
+import GmWorkspaceSection from '../components/GmWorkspaceSection'
+import MapsSection from '../components/MapsSection'
 import MembersSection from '../components/MembersSection'
 import NpcsSection from '../components/NpcsSection'
 import OverviewSection from '../components/OverviewSection'
@@ -80,11 +89,18 @@ type CampaignSection =
   | 'characters'
   | 'npcs'
   | 'locations'
+  | 'maps'
   | 'quests'
   | 'items'
   | 'notes'
   | 'my-notes'
   | 'gm-notes'
+  | 'session-planner'
+  | 'secrets'
+  | 'clue-tracker'
+  | 'plot-threads'
+  | 'gm-screen'
+  | 'map-manager'
   | 'members'
 
 const campaignSections:
@@ -97,11 +113,18 @@ const campaignSections:
     'characters',
     'npcs',
     'locations',
+    'maps',
     'quests',
     'items',
     'notes',
     'my-notes',
     'gm-notes',
+    'session-planner',
+    'secrets',
+    'clue-tracker',
+    'plot-threads',
+    'gm-screen',
+    'map-manager',
     'members',
   ]
 
@@ -123,6 +146,7 @@ interface CampaignPageProps {
 
 interface Campaign {
   id: string
+  owner_id: string
   name: string
   system: string | null
   party_name: string | null
@@ -214,6 +238,12 @@ const translations = {
     editCampaign:
       'Edit campaign',
 
+    updateCampaign:
+      'Update campaign',
+
+    playerView:
+      'Player view',
+
     editCampaignTitle:
       'Campaign details',
 
@@ -289,6 +319,9 @@ const translations = {
     locations:
       'Locations',
 
+    maps:
+      'Maps',
+
     quests:
       'Quests',
 
@@ -303,6 +336,14 @@ const translations = {
 
     gmNotes:
       'GM Notes',
+
+    gmTools: 'GM Tools',
+    sessionPlanner: 'Session Planner',
+    secrets: 'Secrets',
+    clueTracker: 'Clue Tracker',
+    plotThreads: 'Plot Threads',
+    gmScreen: 'GM Screen',
+    mapManager: 'Map Manager',
 
     members:
       'Members',
@@ -486,6 +527,12 @@ const translations = {
     editCampaign:
       'Editar campaña',
 
+    updateCampaign:
+      'Actualizar campaña',
+
+    playerView:
+      'Vista de jugadores',
+
     editCampaignTitle:
       'Datos de la campaña',
 
@@ -561,6 +608,9 @@ const translations = {
     locations:
       'Lugares',
 
+    maps:
+      'Mapas',
+
     quests:
       'Misiones',
 
@@ -575,6 +625,14 @@ const translations = {
 
     gmNotes:
       'Notas del GM',
+
+    gmTools: 'Herramientas del GM',
+    sessionPlanner: 'Planificador de sesión',
+    secrets: 'Secretos',
+    clueTracker: 'Rastreador de pistas',
+    plotThreads: 'Hilos argumentales',
+    gmScreen: 'Pantalla del GM',
+    mapManager: 'Gestión de mapas',
 
     members:
       'Miembros',
@@ -764,6 +822,14 @@ function CampaignPage({
     )
 
   const [
+    currentUserId,
+    setCurrentUserId,
+  ] =
+    useState<string | null>(
+      null,
+    )
+
+  const [
     campaignBannerUrl,
     setCampaignBannerUrl,
   ] =
@@ -850,6 +916,13 @@ function CampaignPage({
             CampaignSection
         )
       : 'overview'
+
+  const gmSections: CampaignSection[] = ['gm-notes', 'session-planner', 'secrets', 'clue-tracker', 'plot-threads', 'map-manager', 'gm-screen']
+  const [gmToolsOpen, setGmToolsOpen] = useState(() => gmSections.includes(activeSection))
+
+  useEffect(() => {
+    if (gmSections.includes(activeSection)) setGmToolsOpen(true)
+  }, [activeSection])
 
   const navigateToSection =
     (
@@ -984,6 +1057,7 @@ function CampaignPage({
               .select(
                 `
                   id,
+                  owner_id,
                   name,
                   system,
                   party_name,
@@ -1054,9 +1128,14 @@ function CampaignPage({
             userError ||
             !userData.user
           ) {
+            setCurrentUserId(null)
             setCampaignRole(null)
             return
           }
+
+          setCurrentUserId(
+            userData.user.id,
+          )
 
           const {
             data: membership,
@@ -1140,6 +1219,14 @@ function CampaignPage({
     setCampaignEditError('')
     setCampaignEditSuccess('')
   }
+
+  const isCampaignOwner =
+    Boolean(
+      campaign &&
+      currentUserId &&
+      campaign.owner_id ===
+        currentUserId,
+    )
 
   const handleCampaignEditSubmit =
     async (
@@ -2324,6 +2411,17 @@ function CampaignPage({
 
     {
       id:
+        'maps' as CampaignSection,
+
+      label:
+        t.maps,
+
+      icon:
+        LuMapPinned,
+    },
+
+    {
+      id:
         'quests' as CampaignSection,
 
       label:
@@ -2377,22 +2475,6 @@ function CampaignPage({
         LuNotebookPen,
     },
 
-    ...(
-      campaignRole === 'gm' ||
-      campaignRole === 'co_gm'
-        ? [
-          {
-            id:
-              'gm-notes' as CampaignSection,
-
-            label:
-              t.gmNotes,
-
-            icon:
-              LuLock,
-          },
-        ]
-      : []),
   ]
 
   /* =======================================================
@@ -2929,7 +3011,7 @@ function CampaignPage({
             SIDEBAR
             =============================================== */}
 
-        <aside className="campaign-sidebar">
+        <aside className="campaign-sidebar" data-tour="campaign-sidebar">
           <div className="campaign-sidebar-title">
             <p>
               {campaign.system ||
@@ -2955,6 +3037,7 @@ function CampaignPage({
                       item.id
                     }
                     type="button"
+                    data-tour={`nav-${item.id}`}
                     className={
                       activeSection ===
                       item.id
@@ -2978,6 +3061,45 @@ function CampaignPage({
                 )
               },
             )}
+
+            {(campaignRole === 'gm' || campaignRole === 'co_gm') && (
+              <div className="campaign-nav-group" data-tour="gm-tools-group">
+                <button
+                  type="button"
+                  data-tour="gm-tools-toggle"
+                  className={`campaign-nav-group-toggle ${gmToolsOpen ? 'open' : ''} ${gmSections.includes(activeSection) ? 'active' : ''}`}
+                  onClick={() => setGmToolsOpen(current => !current)}
+                >
+                  <LuLock />
+                  <span>{t.gmTools}</span>
+                  <LuChevronRight className="nav-chevron" />
+                </button>
+
+                {gmToolsOpen && (
+                  <div className="campaign-nav-submenu">
+                    {[
+                      ['gm-notes', t.gmNotes, LuNotebookPen],
+                      ['session-planner', t.sessionPlanner, LuCalendarDays],
+                      ['secrets', t.secrets, LuEyeOff],
+                      ['clue-tracker', t.clueTracker, LuLightbulb],
+                      ['plot-threads', t.plotThreads, LuListTree],
+                      ['map-manager', t.mapManager, LuMapPinned],
+                      ['gm-screen', t.gmScreen, LuMonitor],
+                    ].map(([id, label, Icon]) => (
+                      <button
+                        key={id as string}
+                        type="button"
+                        className={`campaign-nav-subitem ${activeSection === id ? 'active' : ''}`}
+                        onClick={() => navigateToSection(id as CampaignSection)}
+                      >
+                        <Icon />
+                        <span>{label as string}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </nav>
         </aside>
 
@@ -2985,7 +3107,7 @@ function CampaignPage({
             CONTENIDO
             =============================================== */}
 
-        <main className="campaign-content">
+        <main className="campaign-content" data-tour="campaign-content">
           {/* =============================================
               BANNER / HERO DE CAMPAÑA
               ============================================= */}
@@ -3047,6 +3169,26 @@ function CampaignPage({
                 <span>
                   {t.editCampaign}
                 </span>
+              </button>
+
+              {(campaignRole === 'gm' || campaignRole === 'co_gm') && (
+                <button
+                  type="button"
+                  className="campaign-banner-action"
+                  onClick={() => navigate(`/campaign/${campaignId}/update`)}
+                >
+                  <LuRefreshCw />
+                  <span>{t.updateCampaign}</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                className="campaign-banner-action"
+                onClick={() => navigate(`/campaign/${campaignId}/player-view`)}
+              >
+                <LuUsers />
+                <span>{t.playerView}</span>
               </button>
 
               <input
@@ -4086,6 +4228,22 @@ function CampaignPage({
             />
           )}
 
+          {activeSection === 'maps' && (
+            <MapsSection
+              language={language}
+              campaignId={campaignId}
+              campaignRole={campaignRole}
+              canManage={isCampaignOwner}
+              mode={
+                campaignRole === 'gm' ||
+                campaignRole === 'co_gm' ||
+                isCampaignOwner
+                  ? 'manager'
+                  : 'player'
+              }
+            />
+          )}
+
           {/* =============================================
               NOTAS DEL GM
               Visible para GM y Sub-GM
@@ -4105,6 +4263,26 @@ function CampaignPage({
                 campaignId
               }
             />
+          )}
+
+          {(campaignRole === 'gm' || campaignRole === 'co_gm') && activeSection === 'map-manager' && (
+            <MapsSection language={language} campaignId={campaignId} campaignRole={campaignRole} mode="manager" />
+          )}
+
+          {(campaignRole === 'gm' || campaignRole === 'co_gm') && activeSection === 'session-planner' && (
+            <GmWorkspaceSection language={language} campaignId={campaignId} view="session_planner" />
+          )}
+          {(campaignRole === 'gm' || campaignRole === 'co_gm') && activeSection === 'secrets' && (
+            <GmWorkspaceSection language={language} campaignId={campaignId} view="secret" />
+          )}
+          {(campaignRole === 'gm' || campaignRole === 'co_gm') && activeSection === 'clue-tracker' && (
+            <GmWorkspaceSection language={language} campaignId={campaignId} view="clue" />
+          )}
+          {(campaignRole === 'gm' || campaignRole === 'co_gm') && activeSection === 'plot-threads' && (
+            <GmWorkspaceSection language={language} campaignId={campaignId} view="plot_thread" />
+          )}
+          {(campaignRole === 'gm' || campaignRole === 'co_gm') && activeSection === 'gm-screen' && (
+            <GmWorkspaceSection language={language} campaignId={campaignId} view="gm_screen" />
           )}
 
         </main>

@@ -285,6 +285,7 @@ function QuickCapture({ language, campaignId }: QuickCaptureProps) {
       <button
         type="button"
         className="quick-capture-fab"
+        data-tour="quick-capture-fab"
         onClick={() => setOpen(true)}
         aria-label={t.button}
       >
@@ -300,6 +301,7 @@ function QuickCapture({ language, campaignId }: QuickCaptureProps) {
         >
           <aside
             className="quick-capture-panel"
+            data-tour="quick-capture-panel"
             role="dialog"
             aria-modal="true"
             aria-label={t.title}

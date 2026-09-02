@@ -1,0 +1,203 @@
+<!doctype html>
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <!-- =================================================
+         CONFIGURACIÓN GENERAL
+         ================================================= -->
+
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+
+    <meta
+      name="theme-color"
+      content="#0d0f14"
+    />
+
+    <!-- =================================================
+         INFORMACIÓN DEL SITIO
+         ================================================= -->
+
+    <title>Campaign Chronicles</title>
+
+    <meta
+      name="description"
+      content="Keep the story of your tabletop campaigns alive. Organize sessions, characters, NPCs, locations, quests, items and notes in one place."
+    />
+
+    <!-- =================================================
+         OPEN GRAPH
+         Discord · WhatsApp · Facebook · LinkedIn
+         ================================================= -->
+
+    <meta
+      property="og:type"
+      content="website"
+    />
+
+    <meta
+      property="og:title"
+      content="Campaign Chronicles"
+    />
+
+    <meta
+      property="og:description"
+      content="Keep the story of your tabletop campaigns alive. Organize sessions, characters, NPCs, locations, quests, items and notes in one place."
+    />
+
+    <meta
+      property="og:url"
+      content="https://campaign-chronicles.com/"
+    />
+
+    <meta
+      property="og:image"
+      content="https://campaign-chronicles.com/card.png"
+    />
+
+    <meta
+      property="og:image:width"
+      content="1200"
+    />
+
+    <meta
+      property="og:image:height"
+      content="630"
+    />
+
+    <meta
+      property="og:image:alt"
+      content="Campaign Chronicles"
+    />
+
+    <meta
+      property="og:site_name"
+      content="Campaign Chronicles"
+    />
+
+    <!-- =================================================
+         X / TWITTER
+         ================================================= -->
+
+    <meta
+      name="twitter:card"
+      content="summary_large_image"
+    />
+
+    <meta
+      name="twitter:title"
+      content="Campaign Chronicles"
+    />
+
+    <meta
+      name="twitter:description"
+      content="Keep the story of your tabletop campaigns alive. Organize sessions, characters, NPCs, locations, quests, items and notes in one place."
+    />
+
+    <meta
+      name="twitter:image"
+      content="https://campaign-chronicles.com/card.png"
+    />
+
+    <meta
+      name="twitter:image:alt"
+      content="Campaign Chronicles"
+    />
+
+    <!-- =================================================
+         FAVICONS
+         ================================================= -->
+
+    <!-- Compatibilidad clásica -->
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="%BASE_URL%favicon.ico"
+    />
+
+    <!-- Navegadores modernos -->
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="%BASE_URL%favicon-16x16.png"
+    />
+
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="%BASE_URL%favicon-32x32.png"
+    />
+
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="48x48"
+      href="%BASE_URL%favicon-48x48.png"
+    />
+
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="64x64"
+      href="%BASE_URL%favicon-64x64.png"
+    />
+
+    <!-- =================================================
+         APPLE / iPHONE / iPAD
+         ================================================= -->
+
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="%BASE_URL%apple-touch-icon.png"
+    />
+
+    <!-- =================================================
+         ANDROID / PWA
+         ================================================= -->
+
+    <link
+      rel="manifest"
+      href="%BASE_URL%site.webmanifest"
+    />
+    <script>
+  const redirect =
+    sessionStorage.getItem(
+      'spa-redirect',
+    )
+
+  if (redirect) {
+    sessionStorage.removeItem(
+      'spa-redirect',
+    )
+
+    window.history.replaceState(
+      null,
+      '',
+      redirect,
+    )
+  }
+</script>
+
+
+  </head>
+
+  <body>
+    <!-- =================================================
+         APLICACIÓN REACT
+         ================================================= -->
+
+    <div id="root"></div>
+
+    <script
+      type="module"
+      src="/src/main.tsx"
+    ></script>
+  </body>
+</html>
